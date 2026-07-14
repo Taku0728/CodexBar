@@ -593,6 +593,9 @@ extension UsageStore {
         }
         if provider == .codex {
             self.recordCodexHistoricalSampleIfNeeded(snapshot: backfilled)
+            await self.refreshCodexConsumptionVelocity(
+                snapshot: backfilled,
+                generation: context.generation)
         }
     }
 

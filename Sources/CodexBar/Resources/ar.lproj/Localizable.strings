@@ -1187,3 +1187,10 @@
 "Show Codex Spark usage" = "عرض استخدام Codex Spark";
 "Shows Codex Spark quota rows in the menu and provider preview. Requires optional credits and extra usage in Display settings." = "يعرض صفوف حصة Codex Spark في القائمة ومعاينة المزوّد. يتطلب تفعيل «عرض الاعتمادات + الاستخدام الإضافي» في إعدادات العرض.";
 "Scroll to see more models" = "مرر لرؤية المزيد من النماذج";
+"Consumption Speed" = "سرعة الاستهلاك";
+"Consumption speed error: %@" = "خطأ في قياس سرعة الاستهلاك: %@";
+"Estimated from quota changes" = "تقدير استنادًا إلى تغيّرات الحصة";
+"Measuring consumption speed…" = "جارٍ قياس سرعة الاستهلاك…";
+"Runs out in %@ at the 1h pace" = "سينفد خلال %@ وفق وتيرة الساعة الأخيرة";
+"Safe pace" = "الوتيرة الآمنة";
+"The 1h pace stays within the reset" = "وتيرة الساعة الأخيرة تبقى ضمن حد إعادة التعيين";

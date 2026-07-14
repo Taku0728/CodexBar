@@ -1187,3 +1187,10 @@
 "Show Codex Spark usage" = "แสดงการใช้งาน Codex Spark";
 "Shows Codex Spark quota rows in the menu and provider preview. Requires optional credits and extra usage in Display settings." = "แสดงแถวโควตา Codex Spark ในเมนูและตัวอย่างผู้ให้บริการ ต้องเปิดใช้ “แสดงเครดิต + การใช้งานเพิ่มเติม” ในการตั้งค่าการแสดงผล";
 "Scroll to see more models" = "เลื่อนเพื่อดูโมเดลเพิ่มเติม";
+"Consumption Speed" = "ความเร็วการใช้งาน";
+"Consumption speed error: %@" = "เกิดข้อผิดพลาดในการวัดความเร็วการใช้งาน: %@";
+"Estimated from quota changes" = "ค่าประมาณจากการเปลี่ยนแปลงโควตา";
+"Measuring consumption speed…" = "กำลังวัดความเร็วการใช้งาน…";
+"Runs out in %@ at the 1h pace" = "จะหมดใน %@ หากใช้งานต่อด้วยอัตรา 1 ชั่วโมง";
+"Safe pace" = "อัตราที่ปลอดภัย";
+"The 1h pace stays within the reset" = "อัตรา 1 ชั่วโมงยังเพียงพอจนถึงเวลารีเซ็ต";

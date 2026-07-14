@@ -1186,3 +1186,10 @@
 "Show Codex Spark usage" = "Mostreu l'ús de Codex Spark";
 "Shows Codex Spark quota rows in the menu and provider preview. Requires optional credits and extra usage in Display settings." = "Mostreu les files de quota de Codex Spark al menú i a la previsualització del proveïdor. Cal activar «Mostreu crèdits + ús addicional» a la configuració de Pantalla.";
 "Scroll to see more models" = "Desplaceu-vos per veure més models";
+"Consumption Speed" = "Velocitat de consum";
+"Consumption speed error: %@" = "Error de mesura de la velocitat de consum: %@";
+"Estimated from quota changes" = "Estimació basada en els canvis de quota";
+"Measuring consumption speed…" = "Mesurant la velocitat de consum…";
+"Runs out in %@ at the 1h pace" = "S'esgotarà en %@ al ritme de l'última hora";
+"Safe pace" = "Ritme segur";
+"The 1h pace stays within the reset" = "El ritme de l'última hora es manté dins del reinici";

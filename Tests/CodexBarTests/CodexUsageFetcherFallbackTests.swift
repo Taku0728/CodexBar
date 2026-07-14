@@ -135,6 +135,25 @@ struct CodexUsageFetcherFallbackTests {
     }
 
     @Test
+    func `CLI account token usage preserves cumulative total and identity`() async throws {
+        let stubCLIPath = try self.makeAccountTokenUsageStubCodexCLI()
+        defer { try? FileManager.default.removeItem(atPath: stubCLIPath) }
+
+        let fetcher = self.makeStubUsageFetcher(stubCLIPath)
+        let snapshot = try await fetcher.loadAccountTokenUsage()
+
+        #expect(snapshot.tokenUsage.summary.lifetimeTokens == 1_234_567)
+        #expect(snapshot.tokenUsage.summary.currentStreakDays == 4)
+        #expect(snapshot.tokenUsage.dailyUsageBuckets == [
+            CodexAccountTokenUsageSnapshot.DailyUsageBucket(
+                startDate: "2026-07-14",
+                tokens: 42000),
+        ])
+        #expect(snapshot.identity?.accountEmail == "stub@example.com")
+        #expect(snapshot.identity?.loginMethod == "pro")
+    }
+
+    @Test
     func `CLI usage fails when RPC body recovery misses session lane`() async throws {
         let stubCLIPath = try self.makeDecodeMismatchStubCodexCLI(message: Self.partialDecodeBodyMessage)
         defer { try? FileManager.default.removeItem(atPath: stubCLIPath) }
@@ -470,6 +489,67 @@ struct CodexUsageFetcherFallbackTests {
         """
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("codex-credits-only-stub-\(UUID().uuidString)", isDirectory: false)
+        try Data(script.utf8).write(to: url)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: url.path)
+        return url.path
+    }
+
+    private func makeAccountTokenUsageStubCodexCLI() throws -> String {
+        let script = """
+        #!/usr/bin/python3 -S
+        import json
+        import sys
+
+        if "app-server" not in sys.argv[1:]:
+            sys.stderr.write("unexpected non app-server Codex invocation\\n")
+            sys.exit(92)
+
+        for line in sys.stdin:
+            if not line.strip():
+                continue
+            message = json.loads(line)
+            method = message.get("method")
+            if method == "initialized":
+                continue
+
+            identifier = message.get("id")
+            if method == "initialize":
+                payload = {"id": identifier, "result": {}}
+            elif method == "account/usage/read":
+                payload = {
+                    "id": identifier,
+                    "result": {
+                        "summary": {
+                            "lifetimeTokens": 1234567,
+                            "currentStreakDays": 4,
+                            "longestRunningTurnSec": None,
+                            "longestStreakDays": 9,
+                            "peakDailyTokens": 42000
+                        },
+                        "dailyUsageBuckets": [
+                            {"startDate": "2026-07-14", "tokens": 42000}
+                        ]
+                    }
+                }
+            elif method == "account/read":
+                payload = {
+                    "id": identifier,
+                    "result": {
+                        "account": {
+                            "type": "chatgpt",
+                            "email": "stub@example.com",
+                            "planType": "pro"
+                        },
+                        "requiresOpenaiAuth": False
+                    }
+                }
+            else:
+                payload = {"id": identifier, "result": {}}
+
+            print(json.dumps(payload), flush=True)
+        """
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("codex-token-usage-stub-\(UUID().uuidString)", isDirectory: false)
         try Data(script.utf8).write(to: url)
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: url.path)
         return url.path

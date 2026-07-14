@@ -860,6 +860,15 @@ extension StatusItemController {
         } else {
             percentWindow
         }
+        if provider == .codex, mode == .both,
+           let percent = MenuBarDisplayText.percentText(
+               window: displayPercentWindow,
+               showUsed: self.settings.usageBarsShowUsed)
+        {
+            let velocity = MenuBarDisplayText.consumptionVelocityText(
+                self.store.codexConsumptionVelocity) ?? "…"
+            return "\(percent) · \(velocity)"
+        }
         return MenuBarDisplayText.displayText(
             mode: mode,
             percentWindow: displayPercentWindow,

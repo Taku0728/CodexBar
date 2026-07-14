@@ -16,6 +16,13 @@ enum MenuBarDisplayText {
         return "\(sign)\(deltaValue)%"
     }
 
+    static func consumptionVelocityText(_ velocity: CodexConsumptionVelocity) -> String? {
+        guard let multiplier = velocity.current?.multiplier, multiplier.isFinite else { return nil }
+        let direction = multiplier >= 1 ? "↑" : "↓"
+        let estimate = velocity.confidence == .estimated ? "≈" : ""
+        return String(format: "\(estimate)\(direction)%.1f×", multiplier)
+    }
+
     /// Combined "session · weekly" menu-bar text shared by providers that expose both a
     /// session (5h) and weekly (7d) lane, e.g. Codex and Claude.
     static func combinedSessionWeeklyPercentText(

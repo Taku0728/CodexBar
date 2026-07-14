@@ -35,6 +35,7 @@ extension StatusItemController {
     static let creditsHistoryChartID = "creditsHistoryChart"
     static let costHistoryChartID = "costHistoryChart"
     static let usageHistoryChartID = "usageHistoryChart"
+    static let codexConsumptionVelocityChartID = "codexConsumptionVelocityChart"
     static let storageBreakdownID = "storageBreakdown"
     static let statusComponentsID = "statusComponents"
 

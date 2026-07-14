@@ -37,6 +37,7 @@ extension UsageStore {
         _ = self.probeLogs
         _ = self.historicalPaceRevision
         _ = self.planUtilizationHistoryRevision
+        _ = self.codexConsumptionVelocityRevision
         _ = self.providerStorageFootprints
         return 0
     }
@@ -53,6 +54,7 @@ extension UsageStore {
         _ = self.refreshingProviders
         _ = self.statuses
         _ = self.historicalPaceRevision
+        _ = self.codexConsumptionVelocityRevision
         return 0
     }
 
@@ -189,6 +191,9 @@ final class UsageStore {
     var probeLogs: [UsageProvider: String] = [:]
     var historicalPaceRevision: Int = 0
     var planUtilizationHistoryRevision: Int = 0
+    var codexConsumptionVelocity: CodexConsumptionVelocity = .measuring
+    var codexConsumptionVelocityError: String?
+    var codexConsumptionVelocityRevision: Int = 0
     var providerStorageFootprints: [UsageProvider: ProviderStorageFootprint] = [:]
     @ObservationIgnored var lastCreditsSnapshot: CreditsSnapshot?
     @ObservationIgnored var lastCreditsSnapshotAccountKey: String?
@@ -324,6 +329,8 @@ final class UsageStore {
     @ObservationIgnored let historicalUsageHistoryStore: HistoricalUsageHistoryStore
     @ObservationIgnored let planUtilizationHistoryStore: PlanUtilizationHistoryStore
     @ObservationIgnored let codexAccountUsageSnapshotStore: (any CodexAccountUsageSnapshotStoring)?
+    @ObservationIgnored let codexConsumptionVelocityStore: CodexConsumptionVelocityStore?
+    @ObservationIgnored var lastCodexConsumptionVelocityFetchAt: Date?
     @ObservationIgnored var codexHistoricalDataset: CodexHistoricalDataset?
     @ObservationIgnored var codexHistoricalDatasetAccountKey: String?
     @ObservationIgnored var lastKnownResetSnapshots: [UsageProvider: UsageSnapshot] = [:]
@@ -365,6 +372,7 @@ final class UsageStore {
         historicalUsageHistoryStore: HistoricalUsageHistoryStore = HistoricalUsageHistoryStore(),
         planUtilizationHistoryStore: PlanUtilizationHistoryStore? = nil,
         codexAccountUsageSnapshotStore: (any CodexAccountUsageSnapshotStoring)? = nil,
+        codexConsumptionVelocityStore: CodexConsumptionVelocityStore? = nil,
         sessionQuotaNotifier: any SessionQuotaNotifying = SessionQuotaNotifier(),
         startupBehavior: StartupBehavior = .automatic,
         environmentBase: [String: String] = ProcessInfo.processInfo.environment,
@@ -384,6 +392,7 @@ final class UsageStore {
         self.sessionQuotaNotifier = sessionQuotaNotifier
         self.codexAccountUsageSnapshotStore = codexAccountUsageSnapshotStore ??
             (self.startupBehavior.automaticallyStartsBackgroundWork ? FileCodexAccountUsageSnapshotStore() : nil)
+        self.codexConsumptionVelocityStore = codexConsumptionVelocityStore
         self.planUtilizationPersistenceCoordinator = PlanUtilizationHistoryPersistenceCoordinator(
             store: planHistoryStore)
         self.providerMetadata = registry.metadata
@@ -444,123 +453,11 @@ final class UsageStore {
         self.startTokenTimer()
     }
 
-    var iconStyle: IconStyle {
-        let enabled = self.enabledProviders()
-        if enabled.count > 1 {
-            return .combined
-        }
-        if let provider = enabled.first {
-            return self.style(for: provider)
-        }
-        return .codex
-    }
-
-    var isStale: Bool {
-        for provider in self.enabledProviders() where self.errors[provider] != nil {
-            return true
-        }
-        return false
-    }
-
-    func enabledProviders() -> [UsageProvider] {
-        // Use cached enablement to avoid repeated UserDefaults lookups in animation ticks.
-        let enabled = self.settings.enabledProvidersOrdered(metadataByProvider: self.providerMetadata)
-        let now = Date()
-        return enabled.filter { self.isProviderAvailable($0, now: now) }
-    }
-
-    /// Enabled providers without availability filtering. Used for display (switcher, merge-icons).
-    func enabledProvidersForDisplay() -> [UsageProvider] {
-        self.settings.enabledProvidersOrdered(metadataByProvider: self.providerMetadata)
-    }
-
-    /// Providers that should actually participate in background refresh/status/token work.
-    func enabledProvidersForBackgroundWork() -> [UsageProvider] {
-        self.enabledProviders()
-    }
-
-    var statusChecksEnabled: Bool {
-        self.settings.statusChecksEnabled
-    }
-
-    func metadata(for provider: UsageProvider) -> ProviderMetadata {
-        self.providerMetadata[provider]!
-    }
-
-    var codexBrowserCookieOrder: BrowserCookieImportOrder {
-        self.metadata(for: .codex).browserCookieOrder ?? Browser.defaultImportOrder
-    }
-
-    func snapshot(for provider: UsageProvider) -> UsageSnapshot? {
-        self.snapshots[provider]
-    }
-
-    func sourceLabel(for provider: UsageProvider) -> String {
-        var label = self.lastSourceLabels[provider] ?? ""
-        if label.isEmpty {
-            let descriptor = ProviderDescriptorRegistry.descriptor(for: provider)
-            let modes = descriptor.fetchPlan.sourceModes
-            if modes.count == 1, let mode = modes.first {
-                label = mode.rawValue
-            } else {
-                let context = ProviderSourceLabelContext(
-                    provider: provider,
-                    settings: self.settings,
-                    store: self,
-                    descriptor: descriptor)
-                label = ProviderCatalog.implementation(for: provider)?
-                    .defaultSourceLabel(context: context)
-                    ?? "auto"
-            }
-        }
-
-        let context = ProviderSourceLabelContext(
-            provider: provider,
-            settings: self.settings,
-            store: self,
-            descriptor: ProviderDescriptorRegistry.descriptor(for: provider))
-        return ProviderCatalog.implementation(for: provider)?
-            .decorateSourceLabel(context: context, baseLabel: label)
-            ?? label
-    }
-
-    func fetchAttempts(for provider: UsageProvider) -> [ProviderFetchAttempt] {
-        self.lastFetchAttempts[provider] ?? []
-    }
-
-    func style(for provider: UsageProvider) -> IconStyle {
-        self.providerSpecs[provider]?.style ?? .codex
-    }
-
-    func isStale(provider: UsageProvider) -> Bool {
-        self.errors[provider] != nil
-    }
-
-    func knownLimitsAvailability(for provider: UsageProvider) -> UsageLimitsAvailability? {
-        self.knownLimitsAvailabilityByProvider[provider]
-    }
-
-    func hasSatisfiedUsageFetch(for provider: UsageProvider) -> Bool {
-        self.snapshot(for: provider) != nil || self.knownLimitsAvailability(for: provider)?.isUnavailable == true
-    }
-
-    func needsUsageRefreshRetry(for provider: UsageProvider) -> Bool {
-        self.isStale(provider: provider) || !self.hasSatisfiedUsageFetch(for: provider)
-    }
-
-    func isEnabled(_ provider: UsageProvider) -> Bool {
-        let enabled = self.settings.isProviderEnabledCached(
-            provider: provider,
-            metadataByProvider: self.providerMetadata)
-        guard enabled else { return false }
-        return self.isProviderAvailable(provider)
-    }
-
     func isProviderAvailable(_ provider: UsageProvider) -> Bool {
         self.isProviderAvailable(provider, now: Date())
     }
 
-    private func isProviderAvailable(_ provider: UsageProvider, now: Date) -> Bool {
+    func isProviderAvailable(_ provider: UsageProvider, now: Date) -> Bool {
         guard provider != .codex else { return true }
 
         let configRevision = self.settings.configRevision

@@ -1187,3 +1187,10 @@
 "Show Codex Spark usage" = "نمایش استفاده از Codex Spark";
 "Shows Codex Spark quota rows in the menu and provider preview. Requires optional credits and extra usage in Display settings." = "ردیف‌های سهمیه Codex Spark را در منو و پیش‌نمایش ارائه‌دهنده نمایش می‌دهد. لازم است «نمایش اعتبارها + استفاده اضافی» در تنظیمات نمایش فعال باشد.";
 "Scroll to see more models" = "برای دیدن مدل‌های بیشتر پیمایش کنید";
+"Consumption Speed" = "سرعت مصرف";
+"Consumption speed error: %@" = "خطای اندازه‌گیری سرعت مصرف: %@";
+"Estimated from quota changes" = "برآوردشده از تغییرات سهمیه";
+"Measuring consumption speed…" = "در حال اندازه‌گیری سرعت مصرف…";
+"Runs out in %@ at the 1h pace" = "با آهنگ یک‌ساعته، تا %@ دیگر تمام می‌شود";
+"Safe pace" = "آهنگ امن";
+"The 1h pace stays within the reset" = "آهنگ یک‌ساعته تا بازنشانی در محدوده می‌ماند";

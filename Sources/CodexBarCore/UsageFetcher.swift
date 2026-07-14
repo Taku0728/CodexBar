@@ -632,22 +632,6 @@ public struct AccountInfo: Equatable, Sendable {
     }
 }
 
-public struct CodexCLIAccountSnapshot: Sendable {
-    public let usage: UsageSnapshot?
-    public let credits: CreditsSnapshot?
-    public let identity: ProviderIdentitySnapshot?
-
-    public init(
-        usage: UsageSnapshot?,
-        credits: CreditsSnapshot?,
-        identity: ProviderIdentitySnapshot? = nil)
-    {
-        self.usage = usage
-        self.credits = credits
-        self.identity = identity
-    }
-}
-
 public enum UsageError: LocalizedError, Sendable {
     case noSessions
     case noRateLimitsFound
@@ -1093,6 +1077,11 @@ private final class CodexRPCClient: @unchecked Sendable {
         return try self.decodeResult(from: message)
     }
 
+    func fetchAccountTokenUsage() async throws -> CodexAccountTokenUsageSnapshot {
+        let message = try await self.request(method: "account/usage/read")
+        return try self.decodeResult(from: message)
+    }
+
     func shutdown() {
         if self.process.isRunning {
             Self.log.debug("Codex RPC stopping")
@@ -1320,6 +1309,38 @@ public struct UsageFetcher: Sendable {
             }
             throw error
         }
+    }
+
+    public func loadAccountTokenUsage() async throws -> CodexCLIAccountTokenUsageSnapshot {
+        let rpc = try CodexRPCClient(
+            arguments: self.codexArguments,
+            environment: self.environment,
+            initializeTimeoutSeconds: self.initializeTimeoutSeconds,
+            requestTimeoutSeconds: self.requestTimeoutSeconds,
+            resolveExecutable: self.codexExecutableResolver)
+        defer { rpc.shutdown() }
+
+        try await rpc.initialize(clientName: "codexbar", clientVersion: "0.5.4")
+        let tokenUsage = try await rpc.fetchAccountTokenUsage()
+        let account = try await rpc.fetchAccount()
+        let identity = ProviderIdentitySnapshot(
+            providerID: .codex,
+            accountEmail: account.account.flatMap { details in
+                if case let .chatgpt(email, _) = details {
+                    email
+                } else {
+                    nil
+                }
+            },
+            accountOrganization: nil,
+            loginMethod: account.account.flatMap { details in
+                if case let .chatgpt(_, plan) = details {
+                    plan
+                } else {
+                    nil
+                }
+            })
+        return CodexCLIAccountTokenUsageSnapshot(tokenUsage: tokenUsage, identity: identity)
     }
 
     public func loadLatestCredits(keepCLISessionsAlive: Bool = false) async throws -> CreditsSnapshot {

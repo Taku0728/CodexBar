@@ -1187,3 +1187,10 @@
 "Show Codex Spark usage" = "Show Codex Spark usage";
 "Shows Codex Spark quota rows in the menu and provider preview. Requires optional credits and extra usage in Display settings." = "Shows Codex Spark quota rows in the menu and provider preview. Requires optional credits and extra usage in Display settings.";
 "Scroll to see more models" = "Scroll to see more models";
+"Consumption Speed" = "Consumption Speed";
+"Consumption speed error: %@" = "Consumption speed error: %@";
+"Estimated from quota changes" = "Estimated from quota changes";
+"Measuring consumption speed…" = "Measuring consumption speed…";
+"Runs out in %@ at the 1h pace" = "Runs out in %@ at the 1h pace";
+"Safe pace" = "Safe pace";
+"The 1h pace stays within the reset" = "The 1h pace stays within the reset";

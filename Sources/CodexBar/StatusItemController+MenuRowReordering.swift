@@ -2,12 +2,18 @@ import AppKit
 
 extension StatusItemController {
     func addUsageHistoryClusterIfNeeded(to menu: NSMenu, context: MenuCardContext) {
-        if self.addUsageHistoryMenuItemIfNeeded(
+        let addedVelocity = self.addCodexConsumptionVelocityMenuItemIfNeeded(
             to: menu,
             provider: context.currentProvider,
             width: context.menuWidth)
-        {
+        let addedUsageHistory = self.addUsageHistoryMenuItemIfNeeded(
+            to: menu,
+            provider: context.currentProvider,
+            width: context.menuWidth)
+        if addedUsageHistory {
             self.moveCostAndStorageRowsUnderUsageHistory(in: menu)
+        }
+        if addedVelocity || addedUsageHistory {
             menu.addItem(.separator())
         }
     }
