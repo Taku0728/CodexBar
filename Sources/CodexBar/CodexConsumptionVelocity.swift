@@ -77,12 +77,29 @@ enum CodexConsumptionVelocityEvaluator {
     private static let maximumSampleAge: TimeInterval = 5 * 60
     private static let chartPointInterval: TimeInterval = 5 * 60
 
+    private struct Measurement {
+        let sample: CodexConsumptionVelocitySample
+        let observedTokens: Int64
+
+        var capturedAt: Date {
+            self.sample.capturedAt
+        }
+
+        var weeklyUsedPercent: Double {
+            self.sample.weeklyUsedPercent
+        }
+
+        var weeklyResetsAt: Date {
+            self.sample.weeklyResetsAt
+        }
+    }
+
     static func evaluate(
         samples: [CodexConsumptionVelocitySample],
         now: Date,
         bootstrapTokensPerPercent: Double? = nil) -> CodexConsumptionVelocity
     {
-        let segment = self.currentMonotonicSegment(samples: samples, now: now)
+        let segment = self.currentMeasurementSegment(samples: samples, now: now)
         guard let latest = segment.last,
               now.timeIntervalSince(latest.capturedAt) <= self.maximumSampleAge,
               latest.weeklyResetsAt > now,
@@ -150,7 +167,7 @@ enum CodexConsumptionVelocityEvaluator {
     }
 
     private static func calibration(
-        samples: [CodexConsumptionVelocitySample],
+        samples: [Measurement],
         bootstrapTokensPerPercent: Double?) -> Calibration?
     {
         guard let first = samples.first else { return nil }
@@ -182,7 +199,7 @@ enum CodexConsumptionVelocityEvaluator {
     }
 
     private static func chartPoints(
-        samples: [CodexConsumptionVelocitySample],
+        samples: [Measurement],
         now: Date,
         calibration: Double,
         sustainablePercentPerHour: Double) -> [CodexConsumptionVelocityPoint]
@@ -221,7 +238,7 @@ enum CodexConsumptionVelocityEvaluator {
 
     private static func window(
         duration: TimeInterval,
-        samples: [CodexConsumptionVelocitySample],
+        samples: [Measurement],
         calibration: Double,
         sustainablePercentPerHour: Double,
         minimumCoverage: TimeInterval) -> CodexConsumptionVelocityWindow?
@@ -244,9 +261,9 @@ enum CodexConsumptionVelocityEvaluator {
             tokensPerMinute: tokensPerMinute)
     }
 
-    private static func currentMonotonicSegment(
+    private static func currentMeasurementSegment(
         samples: [CodexConsumptionVelocitySample],
-        now: Date) -> [CodexConsumptionVelocitySample]
+        now: Date) -> [Measurement]
     {
         let sorted = samples
             .filter { $0.capturedAt <= now }
@@ -258,14 +275,19 @@ enum CodexConsumptionVelocityEvaluator {
             // The RPC reset timestamp can drift by a few seconds between refreshes.
             guard abs(sample.weeklyResetsAt.timeIntervalSince(latest.weeklyResetsAt)) <= 120 else { break }
             if let next = segment.last,
-               sample.observedTokens > next.observedTokens
-               || sample.weeklyUsedPercent > next.weeklyUsedPercent
+               sample.weeklyUsedPercent > next.weeklyUsedPercent
             {
                 break
             }
             segment.append(sample)
         }
-        return segment.reversed()
+
+        var highWaterMark: Int64?
+        return segment.reversed().map { sample in
+            let observedTokens = max(highWaterMark ?? sample.observedTokens, sample.observedTokens)
+            highWaterMark = observedTokens
+            return Measurement(sample: sample, observedTokens: observedTokens)
+        }
     }
 
     private static func measuringResult(measuredAt: Date?) -> CodexConsumptionVelocity {

@@ -170,18 +170,23 @@ struct CodexConsumptionVelocityTests {
     }
 
     @Test
-    func `counter regression starts a new measurement segment`() {
+    func `counter regression is ignored without discarding earlier measurements`() throws {
         let reset = self.now.addingTimeInterval(7 * 24 * 3600)
         let result = CodexConsumptionVelocityEvaluator.evaluate(
             samples: [
-                self.sample(minutesAgo: 30, tokens: 200_000, used: 5, reset: reset),
-                self.sample(minutesAgo: 15, tokens: 10000, used: 6, reset: reset),
-                self.sample(minutesAgo: 0, tokens: 20000, used: 6, reset: reset),
+                self.sample(minutesAgo: 60, tokens: 500_000, localTokens: 100_000, used: 5, reset: reset),
+                self.sample(minutesAgo: 45, tokens: 500_000, localTokens: 110_000, used: 5, reset: reset),
+                self.sample(minutesAgo: 30, tokens: 500_000, localTokens: 120_000, used: 5, reset: reset),
+                self.sample(minutesAgo: 15, tokens: 500_000, localTokens: 50000, used: 5, reset: reset),
+                self.sample(minutesAgo: 0, tokens: 500_000, localTokens: 130_000, used: 5, reset: reset),
             ],
-            now: self.now)
+            now: self.now,
+            bootstrapTokensPerPercent: 100_000)
 
-        #expect(result.confidence == .measuring)
-        #expect(result.current == nil)
+        #expect(try #require(result.current).tokensPerMinute > 666)
+        #expect(try #require(result.current).tokensPerMinute < 667)
+        #expect(try #require(result.oneHour).tokensPerMinute == 500)
+        #expect(result.points.count == 4)
     }
 
     @Test
