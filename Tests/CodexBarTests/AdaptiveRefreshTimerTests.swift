@@ -111,10 +111,14 @@ struct AdaptiveRefreshTimerTests {
         let store = Self.makeUsageStore(settings: settings, startupBehavior: .full)
         try await Self.waitUntil { store.completedRefreshCountForTesting >= 1 }
 
-        // Manual mode never starts a timer, so nothing can push the count past the one launch refresh
-        // no matter how long we wait; a short settle window is enough to catch a regression.
+        // Startup settings synchronization can legitimately add refreshes unrelated to the timer.
+        // Capture the stable startup count, then verify manual mode does not add recurring ticks.
+        let settledCount = try await Self.waitForStableCount(
+            store: store,
+            settleWindow: .milliseconds(300))
+        #expect(settledCount >= 1)
         try await Task.sleep(for: .milliseconds(300))
-        #expect(store.completedRefreshCountForTesting == 1)
+        #expect(store.completedRefreshCountForTesting == settledCount)
     }
 
     @Test
@@ -242,7 +246,9 @@ struct AdaptiveRefreshTimerTests {
         let store = Self.makeUsageStore(settings: settings, startupBehavior: .full)
         store.restartTimerWithSleepOverrideForTesting(.seconds(5))
         try await Self.waitUntil { store.completedRefreshCountForTesting >= 1 }
-        let countBeforeRestart = store.completedRefreshCountForTesting
+        let countBeforeRestart = try await Self.waitForStableCount(
+            store: store,
+            settleWindow: .milliseconds(300))
 
         // Cancels the pending 5s sleep above and starts a fresh one, still at .oneMinute. No settings
         // mutation, so no settings-observer refresh is expected here at all.
@@ -261,7 +267,9 @@ struct AdaptiveRefreshTimerTests {
         let store = Self.makeUsageStore(settings: settings, startupBehavior: .full)
         store.restartTimerWithSleepOverrideForTesting(.seconds(5))
         try await Self.waitUntil { store.completedRefreshCountForTesting >= 1 }
-        let countBeforeRestart = store.completedRefreshCountForTesting
+        let countBeforeRestart = try await Self.waitForStableCount(
+            store: store,
+            settleWindow: .milliseconds(300))
 
         store.restartTimerWithSleepOverrideForTesting(.seconds(5))
 

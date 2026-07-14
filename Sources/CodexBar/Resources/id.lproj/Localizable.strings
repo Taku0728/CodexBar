@@ -1186,3 +1186,10 @@
 "Show Codex Spark usage" = "Tampilkan penggunaan Codex Spark";
 "Shows Codex Spark quota rows in the menu and provider preview. Requires optional credits and extra usage in Display settings." = "Menampilkan baris kuota Codex Spark di menu dan pratinjau penyedia. Mengharuskan “Tampilkan kredit + penggunaan ekstra” diaktifkan di pengaturan Tampilan.";
 "Scroll to see more models" = "Gulir untuk melihat model lainnya";
+"Consumption Speed" = "Kecepatan Konsumsi";
+"Consumption speed error: %@" = "Kesalahan kecepatan konsumsi: %@";
+"Estimated from quota changes" = "Diperkirakan dari penggunaan terbaru";
+"Measuring consumption speed…" = "Mengukur kecepatan konsumsi…";
+"Runs out in %@ at the 1h pace" = "Habis dalam %@ pada laju 1 jam";
+"Safe pace" = "Laju aman";
+"The 1h pace stays within the reset" = "Laju 1 jam tetap dalam periode pengaturan ulang";

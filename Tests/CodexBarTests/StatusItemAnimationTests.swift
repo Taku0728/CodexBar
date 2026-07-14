@@ -1577,7 +1577,7 @@ struct StatusItemAnimationTests {
 
         let displayText = controller.menuBarDisplayText(for: .codex, snapshot: snapshot)
 
-        #expect(displayText == "20%")
+        #expect(displayText == "20% · …")
     }
 
     @Test

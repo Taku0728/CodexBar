@@ -4,9 +4,11 @@
 [![Swift 6.2](https://img.shields.io/badge/Swift-6.2-F05138?logo=swift&logoColor=white)](https://www.swift.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+<img src="docs/codexbar.png" alt="CodexBar — every AI coding limit in your menu bar. 59 providers.">
+
 Codex / ChatGPT Workの共通週間枠を、残量だけでなく「このMacのCodex利用速度」から判断するためのmacOSメニューバーアプリです。
 
-このリポジトリは[steipete/CodexBar](https://github.com/steipete/CodexBar)の個人forkです。上流版が対応する各種AIサービスの使用状況表示を維持しつつ、このMacでのCodexの短期的な使いすぎを早く検知できる表示を追加しています。
+このリポジトリは[steipete/CodexBar](https://github.com/steipete/CodexBar)の個人forkです。上流版が対応する59プロバイダーの使用状況表示を維持しつつ、このMacでのCodexの短期的な使いすぎを早く検知できる表示を追加しています。
 
 > [!IMPORTANT]
 > このfork独自のリリース配布やHomebrew Formulaはありません。利用する場合はソースからビルドしてください。上流版のリリースやHomebrew版には、このforkの消費速度機能は含まれません。
@@ -88,7 +90,7 @@ open CodexBar.app
 
 消費速度の計測には`Historical tracking`が必須です。`OpenAI web extras`はコードレビュー枠やWebダッシュボード由来の補助情報にだけ必要で、消費速度の計測には不要です。
 
-Codex連携の詳細は[`docs/codex.md`](docs/codex.md)を参照してください。
+Codex連携の詳細は[Codex連携ガイド](docs/codex.md)を参照してください。
 
 ## データの取得と保存
 
@@ -144,7 +146,7 @@ swift test --filter CodexConsumptionVelocityTests
 make check
 ```
 
-開発手順の詳細は[`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md)、上流版の対応プロバイダーは[`docs/providers.md`](docs/providers.md)を参照してください。
+開発手順の詳細は[開発ガイド](docs/DEVELOPMENT.md)、上流版の対応プロバイダーは[プロバイダー一覧](docs/providers.md)を参照してください。
 
 ## 上流版との関係
 

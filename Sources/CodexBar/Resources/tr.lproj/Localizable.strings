@@ -1184,3 +1184,10 @@
 "Show Codex Spark usage" = "Codex Spark kullanımını göster";
 "Shows Codex Spark quota rows in the menu and provider preview. Requires optional credits and extra usage in Display settings." = "Codex Spark kota satırlarını menüde ve sağlayıcı önizlemesinde gösterir. Görünüm ayarlarında “Krediler + ekstra kullanımı göster” seçeneğinin etkin olmasını gerektirir.";
 "Scroll to see more models" = "Daha fazla model görmek için kaydırın";
+"Consumption Speed" = "Tüketim Hızı";
+"Consumption speed error: %@" = "Tüketim hızı hatası: %@";
+"Estimated from quota changes" = "Son kullanımdan tahmin edildi";
+"Measuring consumption speed…" = "Tüketim hızı ölçülüyor…";
+"Runs out in %@ at the 1h pace" = "1 saatlik hızla %@ içinde tükenir";
+"Safe pace" = "Güvenli hız";
+"The 1h pace stays within the reset" = "1 saatlik hız sıfırlama süresi içinde kalıyor";
