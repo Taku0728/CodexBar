@@ -1,4 +1,4 @@
-# CodexBar — Codex / ChatGPT Workの消費速度監視
+# CodexBar — Codex / ChatGPT Workの利用枠監視Macアプリ
 
 [![macOS 14+](https://img.shields.io/badge/macOS-14%2B-black?logo=apple)](https://www.apple.com/macos/)
 [![Swift 6.2](https://img.shields.io/badge/Swift-6.2-F05138?logo=swift&logoColor=white)](https://www.swift.org/)
