@@ -1189,7 +1189,7 @@
 "Scroll to see more models" = "Scroll to see more models";
 "Consumption Speed" = "Consumption Speed";
 "Consumption speed error: %@" = "Consumption speed error: %@";
-"Estimated from quota changes" = "Estimated from quota changes";
+"Estimated from quota changes" = "Estimated from recent usage";
 "Measuring consumption speed…" = "Measuring consumption speed…";
 "Runs out in %@ at the 1h pace" = "Runs out in %@ at the 1h pace";
 "Safe pace" = "Safe pace";

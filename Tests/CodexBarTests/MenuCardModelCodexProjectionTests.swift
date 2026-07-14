@@ -548,6 +548,7 @@ struct MenuCardModelCodexProjectionTests {
         #expect(model.metrics.contains { $0.title == "Code review" && $0.percent == 73 })
         let codeReviewMetric = model.metrics.first { $0.id == "code-review" }
         #expect(codeReviewMetric?.resetText?.contains("Resets") == true)
+        #expect(codeReviewMetric?.usesCompactCodexSupplementalStyle == true)
     }
 
     @Test
@@ -691,6 +692,7 @@ struct MenuCardModelCodexProjectionTests {
         #expect(spark.resetText != nil)
         #expect(spark.detailLeftText == "20% in deficit")
         #expect(spark.detailRightText == "Projected empty in 45m")
+        #expect(spark.usesCompactCodexSupplementalStyle)
         let sparkWeekly = try #require(model.metrics.first { $0.id == "codex-spark-weekly" })
         #expect(sparkWeekly.title == "Codex Spark Weekly")
         #expect(sparkWeekly.percent == 0)
@@ -698,6 +700,7 @@ struct MenuCardModelCodexProjectionTests {
         #expect(sparkWeekly.resetText != nil)
         #expect(sparkWeekly.detailLeftText == "86% in deficit")
         #expect(sparkWeekly.detailRightText == "Runs out now")
+        #expect(sparkWeekly.usesCompactCodexSupplementalStyle)
         // Spark trails the core session/weekly lanes rather than replacing them.
         let sparkIndex = try #require(model.metrics.firstIndex { $0.id == "codex-spark" })
         let sparkWeeklyIndex = try #require(model.metrics.firstIndex { $0.id == "codex-spark-weekly" })

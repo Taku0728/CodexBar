@@ -1,3 +1,4 @@
+import CodexBarCore
 import Foundation
 import Testing
 @testable import CodexBar
@@ -17,6 +18,118 @@ struct CodexConsumptionVelocityTests {
 
         #expect(result.confidence == .measuring)
         #expect(result.current == nil)
+    }
+
+    @Test
+    func `bootstrap calibration publishes the current speed after the first refresh interval`() throws {
+        let reset = self.now.addingTimeInterval(100 * 3600)
+        let result = CodexConsumptionVelocityEvaluator.evaluate(
+            samples: [
+                self.sample(
+                    minutesAgo: 1,
+                    tokens: 500_000,
+                    localTokens: 100_000,
+                    used: 10,
+                    reset: reset),
+                self.sample(
+                    minutesAgo: 0,
+                    tokens: 500_000,
+                    localTokens: 110_000,
+                    used: 10,
+                    reset: reset),
+            ],
+            now: self.now,
+            bootstrapTokensPerPercent: 1_000_000)
+
+        #expect(result.confidence == .estimated)
+        #expect(try #require(result.current).tokensPerMinute == 10000)
+        #expect(try #require(result.current).multiplier > 0.66)
+        #expect(try #require(result.current).multiplier < 0.67)
+        #expect(result.points.count == 1)
+    }
+
+    @Test
+    func `small reset timestamp drift stays in the same measurement segment`() throws {
+        let reset = self.now.addingTimeInterval(100 * 3600)
+        let result = CodexConsumptionVelocityEvaluator.evaluate(
+            samples: [
+                self.sample(
+                    minutesAgo: 1,
+                    tokens: 500_000,
+                    localTokens: 100_000,
+                    used: 10,
+                    reset: reset),
+                self.sample(
+                    minutesAgo: 0,
+                    tokens: 500_000,
+                    localTokens: 110_000,
+                    used: 10,
+                    reset: reset.addingTimeInterval(-1)),
+            ],
+            now: self.now,
+            bootstrapTokensPerPercent: 1_000_000)
+
+        #expect(try #require(result.current).tokensPerMinute == 10000)
+    }
+
+    @Test
+    func `current window projects exhaustion until the one hour window is available`() throws {
+        let reset = self.now.addingTimeInterval(100 * 3600)
+        let result = CodexConsumptionVelocityEvaluator.evaluate(
+            samples: [
+                self.sample(
+                    minutesAgo: 1,
+                    tokens: 500_000,
+                    localTokens: 100_000,
+                    used: 90,
+                    reset: reset),
+                self.sample(
+                    minutesAgo: 0,
+                    tokens: 500_000,
+                    localTokens: 110_000,
+                    used: 90,
+                    reset: reset),
+            ],
+            now: self.now,
+            bootstrapTokensPerPercent: 100_000)
+
+        #expect(result.oneHour == nil)
+        #expect(try #require(result.exhaustionAt) < reset)
+    }
+
+    @Test
+    func `bootstrap estimate uses only local token days inside the active weekly period`() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try #require(TimeZone(secondsFromGMT: 0))
+        let reset = self.now.addingTimeInterval(5 * 24 * 3600)
+        let weeklyStart = reset.addingTimeInterval(-7 * 24 * 3600)
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.dateFormat = "yyyy-MM-dd"
+        let snapshot = CostUsageTokenSnapshot(
+            sessionTokens: 700,
+            sessionCostUSD: nil,
+            last30DaysTokens: 1900,
+            last30DaysCostUSD: nil,
+            daily: [
+                self.dailyEntry(
+                    date: formatter.string(from: weeklyStart.addingTimeInterval(-24 * 3600)),
+                    tokens: 900),
+                self.dailyEntry(date: formatter.string(from: weeklyStart), tokens: 300),
+                self.dailyEntry(date: formatter.string(from: self.now), tokens: 700),
+            ],
+            updatedAt: self.now)
+
+        let estimate = try #require(CodexConsumptionVelocityBootstrap.estimate(
+            tokenSnapshot: snapshot,
+            weeklyUsedPercent: 10,
+            weeklyResetsAt: reset,
+            now: self.now,
+            calendar: calendar))
+
+        #expect(estimate.weeklyTokens == 1000)
+        #expect(estimate.tokensPerPercent == 100)
     }
 
     @Test
@@ -136,13 +249,26 @@ struct CodexConsumptionVelocityTests {
     private func sample(
         minutesAgo: Double,
         tokens: Int64,
+        localTokens: Int64? = nil,
         used: Double,
         reset: Date) -> CodexConsumptionVelocitySample
     {
         CodexConsumptionVelocitySample(
             capturedAt: self.now.addingTimeInterval(-minutesAgo * 60),
             lifetimeTokens: tokens,
+            localTokens: localTokens,
             weeklyUsedPercent: used,
             weeklyResetsAt: reset)
+    }
+
+    private func dailyEntry(date: String, tokens: Int) -> CostUsageDailyReport.Entry {
+        CostUsageDailyReport.Entry(
+            date: date,
+            inputTokens: nil,
+            outputTokens: nil,
+            totalTokens: tokens,
+            costUSD: nil,
+            modelsUsed: nil,
+            modelBreakdowns: nil)
     }
 }

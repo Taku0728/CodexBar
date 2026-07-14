@@ -1,10 +1,30 @@
+import CodexBarCore
 import Foundation
 
 struct CodexConsumptionVelocitySample: Codable, Equatable, Sendable {
     let capturedAt: Date
     let lifetimeTokens: Int64
+    let localTokens: Int64?
     let weeklyUsedPercent: Double
     let weeklyResetsAt: Date
+
+    init(
+        capturedAt: Date,
+        lifetimeTokens: Int64,
+        localTokens: Int64? = nil,
+        weeklyUsedPercent: Double,
+        weeklyResetsAt: Date)
+    {
+        self.capturedAt = capturedAt
+        self.lifetimeTokens = lifetimeTokens
+        self.localTokens = localTokens
+        self.weeklyUsedPercent = weeklyUsedPercent
+        self.weeklyResetsAt = weeklyResetsAt
+    }
+
+    var observedTokens: Int64 {
+        self.localTokens ?? self.lifetimeTokens
+    }
 }
 
 enum CodexConsumptionVelocityConfidence: Equatable, Sendable {
@@ -53,18 +73,22 @@ enum CodexConsumptionVelocityEvaluator {
     private static let oneHourWindow: TimeInterval = 60 * 60
     private static let twentyFourHourWindow: TimeInterval = 24 * 60 * 60
     private static let minimumCoverageRatio = 0.8
+    private static let minimumCurrentCoverage: TimeInterval = 45
     private static let maximumSampleAge: TimeInterval = 5 * 60
     private static let chartPointInterval: TimeInterval = 5 * 60
 
     static func evaluate(
         samples: [CodexConsumptionVelocitySample],
-        now: Date) -> CodexConsumptionVelocity
+        now: Date,
+        bootstrapTokensPerPercent: Double? = nil) -> CodexConsumptionVelocity
     {
         let segment = self.currentMonotonicSegment(samples: samples, now: now)
         guard let latest = segment.last,
               now.timeIntervalSince(latest.capturedAt) <= self.maximumSampleAge,
               latest.weeklyResetsAt > now,
-              let calibration = self.calibration(samples: segment)
+              let calibration = self.calibration(
+                  samples: segment,
+                  bootstrapTokensPerPercent: bootstrapTokensPerPercent)
         else {
             return Self.measuringResult(measuredAt: segment.last?.capturedAt)
         }
@@ -84,21 +108,22 @@ enum CodexConsumptionVelocityEvaluator {
             samples: segment,
             calibration: calibration.tokensPerPercent,
             sustainablePercentPerHour: sustainablePercentPerHour,
-            endingAt: latest.capturedAt)
+            minimumCoverage: self.minimumCurrentCoverage)
         let oneHour = self.window(
             duration: self.oneHourWindow,
             samples: segment,
             calibration: calibration.tokensPerPercent,
             sustainablePercentPerHour: sustainablePercentPerHour,
-            endingAt: latest.capturedAt)
+            minimumCoverage: self.oneHourWindow * self.minimumCoverageRatio)
         let twentyFourHours = self.window(
             duration: self.twentyFourHourWindow,
             samples: segment,
             calibration: calibration.tokensPerPercent,
             sustainablePercentPerHour: sustainablePercentPerHour,
-            endingAt: latest.capturedAt)
+            minimumCoverage: self.twentyFourHourWindow * self.minimumCoverageRatio)
 
-        let exhaustionAt = oneHour.flatMap { metric -> Date? in
+        let projectionWindow = oneHour ?? current
+        let exhaustionAt = projectionWindow.flatMap { metric -> Date? in
             guard metric.percentPerHour > 0 else { return nil }
             let projected = now.addingTimeInterval(remainingPercent / metric.percentPerHour * 3600)
             return projected < latest.weeklyResetsAt ? projected : nil
@@ -124,7 +149,10 @@ enum CodexConsumptionVelocityEvaluator {
         let percentDelta: Double
     }
 
-    private static func calibration(samples: [CodexConsumptionVelocitySample]) -> Calibration? {
+    private static func calibration(
+        samples: [CodexConsumptionVelocitySample],
+        bootstrapTokensPerPercent: Double?) -> Calibration?
+    {
         guard let first = samples.first else { return nil }
         var minimum = first
         var best: Calibration?
@@ -134,7 +162,7 @@ enum CodexConsumptionVelocityEvaluator {
                 continue
             }
             let percentDelta = sample.weeklyUsedPercent - minimum.weeklyUsedPercent
-            let tokenDelta = sample.lifetimeTokens - minimum.lifetimeTokens
+            let tokenDelta = sample.observedTokens - minimum.observedTokens
             guard percentDelta >= 1, tokenDelta > 0 else { continue }
             let candidate = Calibration(
                 tokensPerPercent: Double(tokenDelta) / percentDelta,
@@ -143,7 +171,14 @@ enum CodexConsumptionVelocityEvaluator {
                 best = candidate
             }
         }
-        return best
+        if let best {
+            return best
+        }
+        guard let bootstrapTokensPerPercent,
+              bootstrapTokensPerPercent.isFinite,
+              bootstrapTokensPerPercent > 0
+        else { return nil }
+        return Calibration(tokensPerPercent: bootstrapTokensPerPercent, percentDelta: 0)
     }
 
     private static func chartPoints(
@@ -169,8 +204,8 @@ enum CodexConsumptionVelocityEvaluator {
             }
             let start = samples[startIndex]
             let elapsed = end.capturedAt.timeIntervalSince(start.capturedAt)
-            let tokenDelta = end.lifetimeTokens - start.lifetimeTokens
-            guard elapsed >= self.currentWindow * self.minimumCoverageRatio,
+            let tokenDelta = end.observedTokens - start.observedTokens
+            guard elapsed >= self.minimumCurrentCoverage,
                   tokenDelta >= 0
             else { continue }
 
@@ -189,16 +224,16 @@ enum CodexConsumptionVelocityEvaluator {
         samples: [CodexConsumptionVelocitySample],
         calibration: Double,
         sustainablePercentPerHour: Double,
-        endingAt: Date) -> CodexConsumptionVelocityWindow?
+        minimumCoverage: TimeInterval) -> CodexConsumptionVelocityWindow?
     {
-        guard let end = samples.last(where: { $0.capturedAt <= endingAt }) else { return nil }
+        guard let end = samples.last else { return nil }
         let target = end.capturedAt.addingTimeInterval(-duration)
         guard let start = samples.last(where: { $0.capturedAt <= target }) ?? samples.first,
-              end.capturedAt.timeIntervalSince(start.capturedAt) >= duration * self.minimumCoverageRatio
+              end.capturedAt.timeIntervalSince(start.capturedAt) >= minimumCoverage
         else { return nil }
 
         let elapsed = end.capturedAt.timeIntervalSince(start.capturedAt)
-        let tokenDelta = end.lifetimeTokens - start.lifetimeTokens
+        let tokenDelta = end.observedTokens - start.observedTokens
         guard elapsed > 0, tokenDelta >= 0 else { return nil }
         let tokensPerMinute = Double(tokenDelta) / (elapsed / 60)
         let percentPerHour = tokensPerMinute * 60 / calibration
@@ -220,9 +255,10 @@ enum CodexConsumptionVelocityEvaluator {
 
         var segment: [CodexConsumptionVelocitySample] = []
         for sample in sorted.reversed() {
-            guard sample.weeklyResetsAt == latest.weeklyResetsAt else { break }
+            // The RPC reset timestamp can drift by a few seconds between refreshes.
+            guard abs(sample.weeklyResetsAt.timeIntervalSince(latest.weeklyResetsAt)) <= 120 else { break }
             if let next = segment.last,
-               sample.lifetimeTokens > next.lifetimeTokens
+               sample.observedTokens > next.observedTokens
                || sample.weeklyUsedPercent > next.weeklyUsedPercent
             {
                 break
@@ -241,6 +277,54 @@ enum CodexConsumptionVelocityEvaluator {
             exhaustionAt: nil,
             points: [],
             measuredAt: measuredAt)
+    }
+}
+
+struct CodexConsumptionVelocityBootstrapEstimate: Equatable, Sendable {
+    let weeklyTokens: Int64
+    let tokensPerPercent: Double
+}
+
+enum CodexConsumptionVelocityBootstrap {
+    private static let weeklyDuration: TimeInterval = 7 * 24 * 60 * 60
+
+    static func estimate(
+        tokenSnapshot: CostUsageTokenSnapshot,
+        weeklyUsedPercent: Double,
+        weeklyResetsAt: Date,
+        now: Date,
+        calendar: Calendar = .current) -> CodexConsumptionVelocityBootstrapEstimate?
+    {
+        guard weeklyUsedPercent > 0,
+              weeklyResetsAt > now
+        else { return nil }
+
+        let weeklyStartedAt = weeklyResetsAt.addingTimeInterval(-Self.weeklyDuration)
+        let firstDay = calendar.startOfDay(for: weeklyStartedAt)
+        let currentDay = calendar.startOfDay(for: now)
+        let weeklyTokens = tokenSnapshot.daily.reduce(Int64(0)) { partial, entry in
+            guard let date = self.localDay(from: entry.date, calendar: calendar),
+                  date >= firstDay,
+                  date <= currentDay,
+                  let tokens = entry.totalTokens,
+                  tokens >= 0
+            else { return partial }
+            return partial + Int64(tokens)
+        }
+        guard weeklyTokens > 0 else { return nil }
+        return CodexConsumptionVelocityBootstrapEstimate(
+            weeklyTokens: weeklyTokens,
+            tokensPerPercent: Double(weeklyTokens) / weeklyUsedPercent)
+    }
+
+    private static func localDay(from value: String, calendar: Calendar) -> Date? {
+        let parts = value.prefix(10).split(separator: "-")
+        guard parts.count == 3,
+              let year = Int(parts[0]),
+              let month = Int(parts[1]),
+              let day = Int(parts[2])
+        else { return nil }
+        return calendar.date(from: DateComponents(year: year, month: month, day: day))
     }
 }
 

@@ -124,6 +124,8 @@ struct UsageMenuCardView: View {
         var usesLiveSubtitle: Bool = false
         let planText: String?
         let metrics: [Metric]
+        var codexConsumptionVelocity: CodexConsumptionVelocity?
+        var codexConsumptionVelocityError: String?
         let usageNotes: [String]
         let openAIAPIUsage: OpenAIAPIUsageSnapshot?
         let inlineUsageDashboard: InlineUsageDashboardModel?
@@ -534,24 +536,6 @@ private struct MetricRow: View {
     }
 }
 
-private struct UsageNotesContent: View {
-    let notes: [String]
-    @Environment(\.menuItemHighlighted) private var isHighlighted
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            ForEach(Array(self.notes.enumerated()), id: \.offset) { _, note in
-                Text(note)
-                    .font(.footnote)
-                    .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
 struct UsageMenuCardHeaderSectionView: View {
     let model: UsageMenuCardView.Model
     let showDivider: Bool
@@ -588,11 +572,30 @@ private struct UsageMenuCardUsageContentView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            ForEach(self.model.metrics, id: \.id) { metric in
+            ForEach(self.primaryMetrics, id: \.id) { metric in
                 MetricRow(
                     metric: metric,
                     title: UsageMenuCardView.popupMetricTitle(provider: self.model.provider, metric: metric),
                     progressColor: self.model.progressColor)
+                if metric.id == self.velocityAnchorID,
+                   let velocity = self.model.codexConsumptionVelocity
+                {
+                    CodexConsumptionVelocityInlineView(
+                        velocity: velocity,
+                        error: self.model.codexConsumptionVelocityError,
+                        now: Date())
+                }
+            }
+            if !self.supplementalMetrics.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(self.supplementalMetrics, id: \.id) { metric in
+                        CompactSupplementalMetricRow(
+                            metric: metric,
+                            title: UsageMenuCardView.popupMetricTitle(
+                                provider: self.model.provider,
+                                metric: metric))
+                    }
+                }
             }
             if let resetCredits = self.model.codexResetCredits {
                 if !self.model.metrics.isEmpty {
@@ -615,6 +618,24 @@ private struct UsageMenuCardUsageContentView: View {
                 Divider()
             }
         }
+    }
+
+    private var primaryMetrics: [UsageMenuCardView.Model.Metric] {
+        self.model.metrics.filter { !$0.usesCompactCodexSupplementalStyle }
+    }
+
+    private var supplementalMetrics: [UsageMenuCardView.Model.Metric] {
+        self.model.metrics.filter(\.usesCompactCodexSupplementalStyle)
+    }
+
+    private var velocityAnchorID: String? {
+        guard self.model.provider == .codex,
+              self.model.codexConsumptionVelocity != nil
+        else { return nil }
+        if self.primaryMetrics.contains(where: { $0.id == "secondary" }) {
+            return "secondary"
+        }
+        return self.primaryMetrics.first?.id
     }
 }
 
@@ -900,7 +921,7 @@ extension UsageMenuCardView.Model {
         let redacted = Self.redactedText(input: input, subtitle: subtitle)
         let placeholder = Self.placeholder(input: input)
 
-        return UsageMenuCardView.Model(
+        var model = UsageMenuCardView.Model(
             provider: input.provider,
             providerName: input.metadata.displayName,
             email: redacted.email,
@@ -923,6 +944,9 @@ extension UsageMenuCardView.Model {
             tokenUsage: tokenUsage,
             placeholder: placeholder,
             progressColor: Self.progressColor(for: input.provider))
+        model.codexConsumptionVelocity = input.codexConsumptionVelocity
+        model.codexConsumptionVelocityError = input.codexConsumptionVelocityError
+        return model
     }
 
     static func openRouterSpendNotes(_ usage: OpenRouterUsageSnapshot) -> [String] {

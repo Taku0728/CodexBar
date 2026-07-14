@@ -110,6 +110,7 @@ extension UsageMenuCardView.Model {
             self.usageNotes.isEmpty &&
             self.openAIAPIUsage == nil &&
             self.inlineUsageDashboard == nil &&
+            self.codexConsumptionVelocity == nil &&
             self.creditsRemaining == nil &&
             self.providerCost == nil &&
             self.tokenUsage == nil &&
@@ -121,6 +122,7 @@ extension UsageMenuCardView.Model {
             !self.usageNotes.isEmpty ||
             self.openAIAPIUsage != nil ||
             self.inlineUsageDashboard != nil ||
+            self.codexConsumptionVelocity != nil ||
             self.codexResetCredits != nil ||
             self.placeholder != nil
     }
@@ -128,6 +130,7 @@ extension UsageMenuCardView.Model {
     var usesStackedDetailLayout: Bool {
         !self.metrics.isEmpty ||
             self.creditsText != nil ||
+            self.codexConsumptionVelocity != nil ||
             self.codexResetCredits != nil ||
             self.providerCost != nil ||
             self.tokenUsage != nil
@@ -163,6 +166,8 @@ extension UsageMenuCardView.Model {
                   candidateText: candidate.creditsText,
                   candidateRemaining: candidate.creditsRemaining),
               self.creditsHintText == candidate.creditsHintText,
+              (self.codexConsumptionVelocity == nil) == (candidate.codexConsumptionVelocity == nil),
+              self.codexConsumptionVelocityError == candidate.codexConsumptionVelocityError,
               self.codexResetCredits == candidate.codexResetCredits,
               self.placeholder == candidate.placeholder,
               Self.hasCompatibleDashboardLayout(self.inlineUsageDashboard, candidate.inlineUsageDashboard),
@@ -929,5 +934,11 @@ extension UsageMenuCardView.Model {
         }
 
         return (resetText, PaceDetail(leftLabel: left, rightLabel: right, pacePercent: nil, paceOnTop: true))
+    }
+}
+
+extension UsageMenuCardView.Model.Metric {
+    var usesCompactCodexSupplementalStyle: Bool {
+        self.id == "code-review" || self.id.hasPrefix("codex-spark")
     }
 }

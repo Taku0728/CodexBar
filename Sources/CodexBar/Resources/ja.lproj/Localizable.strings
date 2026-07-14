@@ -1183,7 +1183,7 @@
 "Scroll to see more models" = "スクロールして他のモデルを表示";
 "Consumption Speed" = "消費速度";
 "Consumption speed error: %@" = "消費速度の計測エラー：%@";
-"Estimated from quota changes" = "使用上限の変化から算出した推定値";
+"Estimated from quota changes" = "最近の使用実績から算出した推定値";
 "Measuring consumption speed…" = "消費速度を計測中…";
 "Runs out in %@ at the 1h pace" = "1時間ペース継続で約%@後に残量0";
 "Safe pace" = "安全速度";

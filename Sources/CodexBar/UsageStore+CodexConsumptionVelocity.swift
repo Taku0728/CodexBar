@@ -90,9 +90,25 @@ extension UsageStore {
                 throw CodexConsumptionVelocityRefreshError.missingLifetimeTokens
             }
 
+            let tokenSnapshot = try await self.costUsageFetcher.loadTokenSnapshot(
+                provider: .codex,
+                environment: self.environmentBase,
+                now: now,
+                forceRefresh: true,
+                codexHomePath: self.tokenCostScope(for: .codex).codexHomePath,
+                historyDays: 8,
+                refreshPricingInBackground: false)
+            guard self.isCurrentProviderRefreshGeneration(.codex, generation: generation) else { return }
+            let bootstrap = CodexConsumptionVelocityBootstrap.estimate(
+                tokenSnapshot: tokenSnapshot,
+                weeklyUsedPercent: weekly.usedPercent,
+                weeklyResetsAt: weekly.resetsAt,
+                now: now)
+
             let sample = CodexConsumptionVelocitySample(
                 capturedAt: now,
                 lifetimeTokens: lifetimeTokens,
+                localTokens: bootstrap?.weeklyTokens,
                 weeklyUsedPercent: weekly.usedPercent,
                 weeklyResetsAt: weekly.resetsAt)
             let samples = try await Task.detached(priority: .utility) {
@@ -101,7 +117,8 @@ extension UsageStore {
             guard self.isCurrentProviderRefreshGeneration(.codex, generation: generation) else { return }
             self.codexConsumptionVelocity = CodexConsumptionVelocityEvaluator.evaluate(
                 samples: samples,
-                now: now)
+                now: now,
+                bootstrapTokensPerPercent: bootstrap?.tokensPerPercent)
             self.codexConsumptionVelocityError = nil
             self.codexConsumptionVelocityRevision &+= 1
         } catch {
