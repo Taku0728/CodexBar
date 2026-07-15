@@ -67,7 +67,7 @@ struct StatusMenuSwitcherClickTests {
     }
 
     @Test
-    func `merged switcher routes runtime clicks after overview round-trip`() throws {
+    func `merged switcher routes runtime clicks after overview round-trip`() async throws {
         // Regression test for #867: after Provider → Overview, subsequent runtime clicks on a
         // sub-provider tab dropped through NSButton's tracking and never updated state.
         let previousMenuCardRendering = StatusItemController.menuCardRenderingEnabled
@@ -104,6 +104,8 @@ struct StatusMenuSwitcherClickTests {
 
         let menu = controller.makeMenu()
         controller.menuWillOpen(menu)
+        controller.applyIcon(phase: nil, bypassMergedMenuTrackingDeferral: true)
+        #expect(controller.lastAppliedMergedIconRenderSignature?.contains("provider=claude") == true)
 
         // Step 1: provider → Overview via the runtime click path.
         let switcher1 = try #require(menu.items.first?.view as? ProviderSwitcherView)
@@ -127,6 +129,8 @@ struct StatusMenuSwitcherClickTests {
         #expect(switcher4._test_simulateRuntimeClick(buttonTag: 1))
         #expect(settings.mergedMenuLastSelectedWasOverview == false)
         #expect(settings.selectedMenuProvider == .codex)
+        await controller.providerSelectionUIRefreshTask?.value
+        #expect(controller.lastAppliedMergedIconRenderSignature?.contains("provider=codex") == true)
     }
 
     @Test

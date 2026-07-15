@@ -3,7 +3,6 @@ import Foundation
 
 enum CodexConsumptionVelocityRefreshError: LocalizedError {
     case missingWeeklyWindow
-    case missingLifetimeTokens
     case unresolvedAccount
     case accountMismatch(expected: String, actual: String)
     case ambiguousAccount
@@ -12,8 +11,6 @@ enum CodexConsumptionVelocityRefreshError: LocalizedError {
         switch self {
         case .missingWeeklyWindow:
             "Codex did not return a weekly usage window with a reset time."
-        case .missingLifetimeTokens:
-            "Codex did not return cumulative token usage."
         case .unresolvedAccount:
             "Codex token usage could not be tied to the active account."
         case let .accountMismatch(expected, actual):
@@ -72,22 +69,23 @@ extension UsageStore {
                 base: self.codexFetcher,
                 provider: .codex,
                 env: environment)
-            let accountUsage = try await fetcher.loadAccountTokenUsage()
-            guard self.isCurrentProviderRefreshGeneration(.codex, generation: generation) else { return }
-            guard let actualEmail = CodexIdentityResolver.normalizeEmail(
-                accountUsage.identity?.accountEmail)
-            else {
-                throw CodexConsumptionVelocityRefreshError.unresolvedAccount
-            }
-            guard actualEmail == expectedEmail else {
-                throw CodexConsumptionVelocityRefreshError.accountMismatch(
-                    expected: expectedEmail,
-                    actual: actualEmail)
-            }
-            guard let lifetimeTokens = accountUsage.tokenUsage.summary.lifetimeTokens,
-                  lifetimeTokens >= 0
-            else {
-                throw CodexConsumptionVelocityRefreshError.missingLifetimeTokens
+            let lifetimeTokens: Int64?
+            do {
+                let accountUsage = try await fetcher.loadAccountTokenUsage()
+                guard self.isCurrentProviderRefreshGeneration(.codex, generation: generation) else { return }
+                guard let actualEmail = CodexIdentityResolver.normalizeEmail(
+                    accountUsage.identity?.accountEmail)
+                else {
+                    throw CodexConsumptionVelocityRefreshError.unresolvedAccount
+                }
+                guard actualEmail == expectedEmail else {
+                    throw CodexConsumptionVelocityRefreshError.accountMismatch(
+                        expected: expectedEmail,
+                        actual: actualEmail)
+                }
+                lifetimeTokens = accountUsage.tokenUsage.summary.lifetimeTokens.flatMap { $0 >= 0 ? $0 : nil }
+            } catch CodexStatusProbeError.codexNotInstalled {
+                lifetimeTokens = nil
             }
 
             let tokenSnapshot = try await self.costUsageFetcher.loadTokenSnapshot(

@@ -32,7 +32,9 @@ extension StatusItemController {
         self.updateAnimationState()
         self.updateBlinkingState()
         let phase: Double? = self.needsMenuBarIconAnimation() ? self.animationPhase : nil
-        self.applyIcon(phase: phase)
+        self.applyIcon(
+            phase: phase,
+            bypassMergedMenuTrackingDeferral: self.shouldMergeIcons && self.isMergedMenuOpen)
     }
 
     func navigateProviderSwitcher(

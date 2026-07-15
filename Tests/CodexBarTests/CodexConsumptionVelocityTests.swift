@@ -21,6 +21,50 @@ struct CodexConsumptionVelocityTests {
     }
 
     @Test
+    func `quota changes provide velocity when token counters are unavailable`() throws {
+        let reset = self.now.addingTimeInterval(100 * 3600)
+        let result = CodexConsumptionVelocityEvaluator.evaluate(
+            samples: [
+                self.sample(minutesAgo: 15, tokens: nil, used: 10, reset: reset),
+                self.sample(minutesAgo: 0, tokens: nil, used: 12, reset: reset),
+            ],
+            now: self.now)
+
+        #expect(result.confidence == .estimated)
+        #expect(try #require(result.current).percentPerHour == 8)
+        #expect(try #require(result.current).tokensPerMinute == nil)
+        #expect(result.points.count == 1)
+    }
+
+    @Test
+    func `unchanged quota reports zero velocity without a token counter`() throws {
+        let reset = self.now.addingTimeInterval(100 * 3600)
+        let result = CodexConsumptionVelocityEvaluator.evaluate(
+            samples: [
+                self.sample(minutesAgo: 1, tokens: nil, used: 10, reset: reset),
+                self.sample(minutesAgo: 0, tokens: nil, used: 10, reset: reset),
+            ],
+            now: self.now)
+
+        #expect(try #require(result.current).multiplier == 0)
+        #expect(try #require(result.current).tokensPerMinute == nil)
+    }
+
+    @Test
+    func `quota fallback starts immediately after the token counter becomes unavailable`() throws {
+        let reset = self.now.addingTimeInterval(100 * 3600)
+        let result = CodexConsumptionVelocityEvaluator.evaluate(
+            samples: [
+                self.sample(minutesAgo: 15, tokens: 100_000, used: 10, reset: reset),
+                self.sample(minutesAgo: 0, tokens: nil, used: 12, reset: reset),
+            ],
+            now: self.now)
+
+        #expect(try #require(result.current).percentPerHour == 8)
+        #expect(try #require(result.current).tokensPerMinute == nil)
+    }
+
+    @Test
     func `bootstrap calibration publishes the current speed after the first refresh interval`() throws {
         let reset = self.now.addingTimeInterval(100 * 3600)
         let result = CodexConsumptionVelocityEvaluator.evaluate(
@@ -204,9 +248,12 @@ struct CodexConsumptionVelocityTests {
             now: self.now,
             bootstrapTokensPerPercent: 100_000)
 
-        #expect(try #require(result.current).tokensPerMinute > 666)
-        #expect(try #require(result.current).tokensPerMinute < 667)
-        #expect(try #require(result.oneHour).tokensPerMinute == 500)
+        let current = try #require(result.current)
+        let currentTokensPerMinute = try #require(current.tokensPerMinute)
+        #expect(currentTokensPerMinute > 666)
+        #expect(currentTokensPerMinute < 667)
+        let oneHour = try #require(result.oneHour)
+        #expect(try #require(oneHour.tokensPerMinute) == 500)
         #expect(result.points.count == 4)
     }
 
@@ -274,7 +321,7 @@ struct CodexConsumptionVelocityTests {
 
     private func sample(
         minutesAgo: Double,
-        tokens: Int64,
+        tokens: Int64?,
         localTokens: Int64? = nil,
         used: Double,
         reset: Date) -> CodexConsumptionVelocitySample
