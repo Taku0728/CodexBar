@@ -32,7 +32,7 @@ extension UsageStore {
         generation: UInt64?,
         now: Date = Date()) async
     {
-        guard self.settings.historicalTrackingEnabled else {
+        guard self.settings.codexConsumptionVelocityTrackingEnabled else {
             self.codexConsumptionVelocity = .measuring
             self.codexConsumptionVelocityError = nil
             self.codexConsumptionVelocityRevision &+= 1

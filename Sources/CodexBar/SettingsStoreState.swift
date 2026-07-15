@@ -32,6 +32,7 @@ struct SettingsDefaultsState {
     var menuBarShowsResetTimeWhenExhausted: Bool
     var kiroMenuBarDisplayModeRaw: String?
     var historicalTrackingEnabled: Bool
+    var codexConsumptionVelocityTrackingEnabled: Bool
     var multiAccountMenuLayoutRaw: String
     var menuBarMetricPreferencesRaw: [String: String]
     var copilotBudgetExtrasEnabled: Bool

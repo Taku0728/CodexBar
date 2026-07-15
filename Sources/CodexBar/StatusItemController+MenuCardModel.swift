@@ -107,10 +107,10 @@ extension StatusItemController {
             metadata: metadata,
             snapshot: snapshot,
             codexProjection: codexProjection,
-            codexConsumptionVelocity: target == .codex && self.settings.historicalTrackingEnabled
+            codexConsumptionVelocity: target == .codex && self.settings.codexConsumptionVelocityTrackingEnabled
                 ? self.store.codexConsumptionVelocity
                 : nil,
-            codexConsumptionVelocityError: target == .codex && self.settings.historicalTrackingEnabled
+            codexConsumptionVelocityError: target == .codex && self.settings.codexConsumptionVelocityTrackingEnabled
                 ? self.store.codexConsumptionVelocityError
                 : nil,
             credits: credits,

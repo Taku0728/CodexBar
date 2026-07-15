@@ -347,6 +347,15 @@ extension SettingsStore {
         }
     }
 
+    var codexConsumptionVelocityTrackingEnabled: Bool {
+        get { self.defaultsState.codexConsumptionVelocityTrackingEnabled }
+        set {
+            self.defaultsState.codexConsumptionVelocityTrackingEnabled = newValue
+            self.userDefaults.set(newValue, forKey: "codexConsumptionVelocityTrackingEnabled")
+            self.noteBackgroundWorkSettingsChanged()
+        }
+    }
+
     var menuBarMetricPreferencesRaw: [String: String] {
         get { self.defaultsState.menuBarMetricPreferencesRaw }
         set {

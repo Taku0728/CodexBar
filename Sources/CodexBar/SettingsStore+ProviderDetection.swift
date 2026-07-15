@@ -23,20 +23,30 @@ enum ProviderDetectionPolicy {
         if enabled.isEmpty { enabled.insert(.codex) }
         return enabled
     }
+
+    static func shouldRun(completed: Bool, force: Bool) -> Bool {
+        force || !completed
+    }
 }
 
 extension SettingsStore {
     func runInitialProviderDetectionIfNeeded(force: Bool = false) {
-        guard force || !self.providerDetectionCompleted else { return }
+        guard ProviderDetectionPolicy.shouldRun(
+            completed: self.providerDetectionCompleted,
+            force: force)
+        else { return }
         LoginShellPathCache.shared.captureOnce { [weak self] _ in
             Task { @MainActor in
-                await self?.applyProviderDetection()
+                await self?.applyProviderDetection(force: force)
             }
         }
     }
 
-    func applyProviderDetection() async {
-        guard !self.providerDetectionCompleted else { return }
+    func applyProviderDetection(force: Bool = false) async {
+        guard ProviderDetectionPolicy.shouldRun(
+            completed: self.providerDetectionCompleted,
+            force: force)
+        else { return }
         let codexCLIInstalled = BinaryLocator.resolveCodexBinary() != nil
         let claudeCLIInstalled = BinaryLocator.resolveClaudeBinary() != nil
         let claudeDesktopInstalled = NSWorkspace.shared.urlForApplication(

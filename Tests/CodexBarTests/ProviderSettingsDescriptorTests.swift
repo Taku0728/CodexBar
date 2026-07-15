@@ -60,6 +60,12 @@ struct ProviderSettingsDescriptorTests {
         #expect(pickers.contains(where: { $0.id == "codex-usage-source" }))
         let cookiePicker = try #require(pickers.first(where: { $0.id == "codex-cookie-source" }))
         #expect(cookiePicker.placement == .connection)
+        let velocityToggle = try #require(toggles.first(where: {
+            $0.id == "codex-consumption-velocity-tracking"
+        }))
+        #expect(velocityToggle.binding.wrappedValue)
+        velocityToggle.binding.wrappedValue = false
+        #expect(fixture.settings.codexConsumptionVelocityTrackingEnabled == false)
         #expect(toggles.contains(where: { $0.id == "codex-historical-tracking" }))
         let sparkToggle = try #require(toggles.first(where: { $0.id == "codex-spark-usage-visible" }))
         #expect(sparkToggle.title == "Show Codex Spark usage")

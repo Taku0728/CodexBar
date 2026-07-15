@@ -81,6 +81,41 @@ struct SettingsStoreCoverageTests {
     }
 
     @Test
+    func `Codex consumption speed tracking defaults on without enabling generic history`() throws {
+        let suite = "SettingsStoreCoverageTests-codex-consumption-velocity-default"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defaults.removePersistentDomain(forName: suite)
+        let settings = Self.makeSettingsStore(
+            userDefaults: defaults,
+            configStore: testConfigStore(suiteName: suite))
+
+        #expect(settings.codexConsumptionVelocityTrackingEnabled)
+        #expect(settings.historicalTrackingEnabled == false)
+
+        settings.codexConsumptionVelocityTrackingEnabled = false
+        let reloaded = Self.makeSettingsStore(
+            userDefaults: defaults,
+            configStore: testConfigStore(suiteName: suite))
+        #expect(reloaded.codexConsumptionVelocityTrackingEnabled == false)
+        #expect(defaults.object(forKey: "codexConsumptionVelocityTrackingEnabled") as? Bool == false)
+    }
+
+    @Test(arguments: [false, true])
+    func `Codex consumption speed tracking inherits an explicit legacy history choice`(legacyChoice: Bool) throws {
+        let suite = "SettingsStoreCoverageTests-codex-consumption-velocity-legacy-\(legacyChoice)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defaults.removePersistentDomain(forName: suite)
+        defaults.set(legacyChoice, forKey: "historicalTrackingEnabled")
+
+        let settings = Self.makeSettingsStore(
+            userDefaults: defaults,
+            configStore: testConfigStore(suiteName: suite))
+
+        #expect(settings.codexConsumptionVelocityTrackingEnabled == legacyChoice)
+        #expect(defaults.object(forKey: "codexConsumptionVelocityTrackingEnabled") == nil)
+    }
+
+    @Test
     func `minimax settings snapshot uses selected token account as manual cookie`() {
         let settings = Self.makeSettingsStore(suiteName: "SettingsStoreCoverageTests-minimax-token-account")
         settings.minimaxCookieSource = .auto

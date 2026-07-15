@@ -73,6 +73,20 @@ struct CodexProviderImplementation: ProviderImplementation {
 
         return [
             ProviderSettingsToggleDescriptor(
+                id: "codex-consumption-velocity-tracking",
+                title: "Consumption speed tracking",
+                subtitle: [
+                    "Stores up to 8 days of Codex consumption speed samples locally.",
+                    "No custom external destination is used.",
+                ].joined(separator: " "),
+                binding: context.boolBinding(\.codexConsumptionVelocityTrackingEnabled),
+                statusText: nil,
+                actions: [],
+                isVisible: nil,
+                onChange: nil,
+                onAppDidBecomeActive: nil,
+                onAppearWhenEnabled: nil),
+            ProviderSettingsToggleDescriptor(
                 id: "codex-historical-tracking",
                 title: "Historical tracking",
                 subtitle: "Stores local Codex usage history (8 weeks) to personalize Pace predictions.",

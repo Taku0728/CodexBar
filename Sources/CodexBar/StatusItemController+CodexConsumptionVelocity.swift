@@ -15,7 +15,7 @@ extension StatusItemController {
         provider: UsageProvider,
         width: CGFloat) -> Bool
     {
-        guard provider == .codex, self.settings.historicalTrackingEnabled else { return false }
+        guard provider == .codex, self.settings.codexConsumptionVelocityTrackingEnabled else { return false }
         let item = NSMenuItem(title: "\(L("Consumption Speed")) · 24h", action: nil, keyEquivalent: "")
         item.isEnabled = true
         item.representedObject = "codexConsumptionVelocitySubmenu"

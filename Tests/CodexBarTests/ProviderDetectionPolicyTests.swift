@@ -3,6 +3,20 @@ import Testing
 @testable import CodexBarCore
 
 struct ProviderDetectionPolicyTests {
+    @Test(arguments: [
+        (completed: false, force: false, expected: true),
+        (completed: false, force: true, expected: true),
+        (completed: true, force: false, expected: false),
+        (completed: true, force: true, expected: true),
+    ])
+    func `provider detection respects completion unless forced`(
+        completed: Bool,
+        force: Bool,
+        expected: Bool)
+    {
+        #expect(ProviderDetectionPolicy.shouldRun(completed: completed, force: force) == expected)
+    }
+
     @Test
     func `fresh install detects Codex and Claude Desktop without unconfigured Gemini`() {
         let enabled = ProviderDetectionPolicy.enabledProviders(signals: .init(

@@ -436,7 +436,12 @@ extension SettingsStore {
             forKey: "menuBarShowsResetTimeWhenExhausted") as? Bool ?? false
         let kiroMenuBarDisplayModeRaw = userDefaults.string(forKey: "kiroMenuBarDisplayMode")
             ?? KiroMenuBarDisplayMode.automatic.rawValue
-        let historicalTrackingEnabled = userDefaults.object(forKey: "historicalTrackingEnabled") as? Bool ?? false
+        let savedHistoricalTracking = userDefaults.object(forKey: "historicalTrackingEnabled") as? Bool
+        let historicalTrackingEnabled = savedHistoricalTracking ?? false
+        let codexConsumptionVelocityTrackingEnabled = userDefaults.object(
+            forKey: "codexConsumptionVelocityTrackingEnabled") as? Bool
+            ?? savedHistoricalTracking
+            ?? true
         let multiAccountMenuLayoutRaw = Self.loadMultiAccountMenuLayoutRaw(userDefaults: userDefaults)
         let resolvedPreferences = Self.loadMenuBarMetricPreferences(userDefaults: userDefaults)
         let copilotBudgetExtrasEnabled = userDefaults.object(forKey: "copilotBudgetExtrasEnabled") as? Bool ?? false
@@ -527,6 +532,7 @@ extension SettingsStore {
             menuBarShowsResetTimeWhenExhausted: menuBarShowsResetTimeWhenExhausted,
             kiroMenuBarDisplayModeRaw: kiroMenuBarDisplayModeRaw,
             historicalTrackingEnabled: historicalTrackingEnabled,
+            codexConsumptionVelocityTrackingEnabled: codexConsumptionVelocityTrackingEnabled,
             multiAccountMenuLayoutRaw: multiAccountMenuLayoutRaw,
             menuBarMetricPreferencesRaw: resolvedPreferences,
             copilotBudgetExtrasEnabled: copilotBudgetExtrasEnabled,
