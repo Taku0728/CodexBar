@@ -327,6 +327,34 @@ struct SettingsStoreTests {
     }
 
     @Test
+    func `brand icon with percentage defaults on and preserves explicit opt out`() throws {
+        let suite = "SettingsStoreTests-brand-icon-with-percentage"
+        let defaultsA = try #require(UserDefaults(suiteName: suite))
+        defaultsA.removePersistentDomain(forName: suite)
+        let configStore = testConfigStore(suiteName: suite)
+        let storeA = SettingsStore(
+            userDefaults: defaultsA,
+            configStore: configStore,
+            zaiTokenStore: NoopZaiTokenStore(),
+            syntheticTokenStore: NoopSyntheticTokenStore())
+
+        #expect(storeA.menuBarShowsBrandIconWithPercent)
+        #expect(storeA.menuBarIconStyle == .iconAndPercent)
+
+        storeA.menuBarShowsBrandIconWithPercent = false
+
+        let defaultsB = try #require(UserDefaults(suiteName: suite))
+        let storeB = SettingsStore(
+            userDefaults: defaultsB,
+            configStore: configStore,
+            zaiTokenStore: NoopZaiTokenStore(),
+            syntheticTokenStore: NoopSyntheticTokenStore())
+
+        #expect(!storeB.menuBarShowsBrandIconWithPercent)
+        #expect(storeB.menuBarIconStyle == .critters)
+    }
+
+    @Test
     func `persists selected menu provider across instances`() throws {
         let suite = "SettingsStoreTests-selectedMenuProvider"
         let defaultsA = try #require(UserDefaults(suiteName: suite))

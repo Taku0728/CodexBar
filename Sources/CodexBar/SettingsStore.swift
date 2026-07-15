@@ -428,7 +428,7 @@ extension SettingsStore {
         let providerChangelogLinksEnabled = userDefaults.object(
             forKey: "providerChangelogLinksEnabled") as? Bool ?? false
         let menuBarShowsBrandIconWithPercent = userDefaults.object(
-            forKey: "menuBarShowsBrandIconWithPercent") as? Bool ?? false
+            forKey: "menuBarShowsBrandIconWithPercent") as? Bool ?? true
         let menuBarHidesCritters = userDefaults.object(forKey: "menuBarHidesCritters") as? Bool ?? false
         let menuBarDisplayModeRaw = userDefaults.string(forKey: "menuBarDisplayMode")
             ?? MenuBarDisplayMode.percent.rawValue
