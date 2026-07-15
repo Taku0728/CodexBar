@@ -1312,9 +1312,9 @@ struct StatusItemAnimationTests {
     }
 
     @Test
-    func `codex combined menu bar metric pairs session usage with weekly pace`() {
+    func `codex combined menu bar metric pairs session usage with consumption velocity`() {
         // The combined metric is shared with Codex, which resolves its lanes through the consumer
-        // projection. The session usage must headline the pace/both readout there too — not the busier
+        // projection. The session usage must headline the velocity readout there too — not the busier
         // weekly lane that drives the icon/bar.
         let settings = SettingsStore(
             configStore: testConfigStore(suiteName: "StatusItemAnimationTests-codex-combined-session-pace"),
@@ -1364,7 +1364,7 @@ struct StatusItemAnimationTests {
 
         let displayText = controller.menuBarDisplayText(for: .codex, snapshot: snapshot)
 
-        #expect(displayText?.hasPrefix("12% · ") == true)
+        #expect(displayText == "12% …")
         #expect(displayText?.hasPrefix("91%") == false)
     }
 
@@ -1534,7 +1534,7 @@ struct StatusItemAnimationTests {
     }
 
     @Test
-    func `codex menu bar pace does not fall back to session when weekly projection is unavailable`() {
+    func `codex menu bar velocity stays measuring when weekly projection is unavailable`() {
         let settings = SettingsStore(
             configStore: testConfigStore(suiteName: "StatusItemAnimationTests-codex-no-weekly-pace"),
             zaiTokenStore: NoopZaiTokenStore(),
@@ -1577,7 +1577,7 @@ struct StatusItemAnimationTests {
 
         let displayText = controller.menuBarDisplayText(for: .codex, snapshot: snapshot)
 
-        #expect(displayText == "20% · …")
+        #expect(displayText == "20% …")
     }
 
     @Test

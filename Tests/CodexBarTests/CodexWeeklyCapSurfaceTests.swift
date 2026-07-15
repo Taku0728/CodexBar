@@ -181,7 +181,7 @@ struct CodexWeeklyCapSurfaceTests {
         settings.menuBarDisplayMode = .pace
         #expect(controller.menuBarDisplayText(for: .codex, snapshot: snapshot, now: now) == "99%")
         settings.menuBarDisplayMode = .both
-        #expect(controller.menuBarDisplayText(for: .codex, snapshot: snapshot, now: now) == "99% · …")
+        #expect(controller.menuBarDisplayText(for: .codex, snapshot: snapshot, now: now) == "99% …")
         settings.menuBarDisplayMode = .resetTime
         #expect(controller.menuBarDisplayText(for: .codex, snapshot: snapshot, now: now) == "↻ in 1h")
 

@@ -19,8 +19,7 @@ enum MenuBarDisplayText {
     static func consumptionVelocityText(_ velocity: CodexConsumptionVelocity) -> String? {
         guard let multiplier = velocity.current?.multiplier, multiplier.isFinite else { return nil }
         let direction = multiplier >= 1 ? "↑" : "↓"
-        let estimate = velocity.confidence == .estimated ? "≈" : ""
-        return String(format: "\(estimate)\(direction)%.1f×", multiplier)
+        return String(format: "\(direction)%.1f×", multiplier)
     }
 
     /// Combined "session · weekly" menu-bar text shared by providers that expose both a

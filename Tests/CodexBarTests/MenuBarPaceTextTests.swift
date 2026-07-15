@@ -31,12 +31,12 @@ struct MenuBarPaceTextTests {
     }
 
     @Test
-    func `consumption velocity text shows direction and confidence`() {
+    func `consumption velocity text shows only the direction and multiplier`() {
         let fast = Self.velocity(multiplier: 2.4, confidence: .stable)
         let slowEstimate = Self.velocity(multiplier: 0.8, confidence: .estimated)
 
         #expect(MenuBarDisplayText.consumptionVelocityText(fast) == "↑2.4×")
-        #expect(MenuBarDisplayText.consumptionVelocityText(slowEstimate) == "≈↓0.8×")
+        #expect(MenuBarDisplayText.consumptionVelocityText(slowEstimate) == "↓0.8×")
         #expect(MenuBarDisplayText.consumptionVelocityText(.measuring) == nil)
     }
 

@@ -14,7 +14,8 @@ struct CodexConsumptionVelocityPlot: View {
             ForEach(visiblePoints) { point in
                 AreaMark(
                     x: .value("Time", point.capturedAt),
-                    y: .value("Speed", point.multiplier))
+                    y: .value("Speed", point.multiplier),
+                    series: .value("Weekly period", point.segmentStartedAt))
                     .foregroundStyle(
                         LinearGradient(
                             colors: [.blue.opacity(0.25), .blue.opacity(0.02)],
@@ -22,7 +23,8 @@ struct CodexConsumptionVelocityPlot: View {
                             endPoint: .bottom))
                 LineMark(
                     x: .value("Time", point.capturedAt),
-                    y: .value("Speed", point.multiplier))
+                    y: .value("Speed", point.multiplier),
+                    series: .value("Weekly period", point.segmentStartedAt))
                     .foregroundStyle(.blue)
                     .lineStyle(StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
                 if point.id == visiblePoints.last?.id {

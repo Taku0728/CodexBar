@@ -170,6 +170,27 @@ struct CodexConsumptionVelocityTests {
     }
 
     @Test
+    func `chart preserves the previous weekly period and separates it from the current period`() throws {
+        let oldReset = self.now.addingTimeInterval(-90 * 60)
+        let newReset = self.now.addingTimeInterval(7 * 24 * 3600)
+        let result = CodexConsumptionVelocityEvaluator.evaluate(
+            samples: [
+                self.sample(minutesAgo: 180, tokens: 100_000, used: 10, reset: oldReset),
+                self.sample(minutesAgo: 165, tokens: 110_000, used: 11, reset: oldReset),
+                self.sample(minutesAgo: 150, tokens: 120_000, used: 12, reset: oldReset),
+                self.sample(minutesAgo: 60, tokens: 200_000, used: 0, reset: newReset),
+                self.sample(minutesAgo: 15, tokens: 210_000, used: 0, reset: newReset),
+                self.sample(minutesAgo: 0, tokens: 220_000, used: 0, reset: newReset),
+            ],
+            now: self.now,
+            bootstrapTokensPerPercent: 100_000)
+
+        #expect(try #require(result.current).multiplier > 0)
+        #expect(result.points.contains { $0.capturedAt == self.now.addingTimeInterval(-150 * 60) })
+        #expect(Set(result.points.map(\.segmentStartedAt)).count == 2)
+    }
+
+    @Test
     func `counter regression is ignored without discarding earlier measurements`() throws {
         let reset = self.now.addingTimeInterval(7 * 24 * 3600)
         let result = CodexConsumptionVelocityEvaluator.evaluate(

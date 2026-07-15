@@ -867,7 +867,7 @@ extension StatusItemController {
         {
             let velocity = MenuBarDisplayText.consumptionVelocityText(
                 self.store.codexConsumptionVelocity) ?? "…"
-            return "\(percent) · \(velocity)"
+            return "\(percent) \(velocity)"
         }
         return MenuBarDisplayText.displayText(
             mode: mode,
