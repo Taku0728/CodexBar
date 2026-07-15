@@ -1287,8 +1287,17 @@ extension StatusItemController {
                 width: width,
                 heightCacheScope: provider.rawValue,
                 heightCacheFingerprint: layoutModel.heightFingerprint(section: "usage"),
-                submenu: usageSubmenu,
                 containsInteractiveControls: true))
+            if let usageSubmenu {
+                let title = if webItems.hasUsageBreakdown {
+                    L("Usage breakdown")
+                } else if provider == .zai {
+                    L("Plan Usage")
+                } else {
+                    self.costHistoryMenuTitle()
+                }
+                self.addDetailsSubmenu(to: menu, title: title, submenu: usageSubmenu)
+            }
         } else {
             let headerView = UsageMenuCardHeaderSectionView(
                 model: layoutModel,
@@ -1325,8 +1334,13 @@ extension StatusItemController {
                 id: "menuCardCredits",
                 width: width,
                 heightCacheScope: provider.rawValue,
-                heightCacheFingerprint: layoutModel.heightFingerprint(section: "credits"),
-                submenu: creditsSubmenu))
+                heightCacheFingerprint: layoutModel.heightFingerprint(section: "credits")))
+            if let creditsSubmenu {
+                self.addDetailsSubmenu(
+                    to: menu,
+                    title: L("Credits history"),
+                    submenu: creditsSubmenu)
+            }
             if webItems.canShowBuyCredits {
                 menu.addItem(self.makeBuyCreditsItem())
             }
@@ -1346,8 +1360,13 @@ extension StatusItemController {
                 id: "menuCardExtraUsage",
                 width: width,
                 heightCacheScope: provider.rawValue,
-                heightCacheFingerprint: layoutModel.heightFingerprint(section: "extraUsage"),
-                submenu: extraUsageSubmenu))
+                heightCacheFingerprint: layoutModel.heightFingerprint(section: "extraUsage")))
+            if let extraUsageSubmenu {
+                self.addDetailsSubmenu(
+                    to: menu,
+                    title: self.costHistoryMenuTitle(),
+                    submenu: extraUsageSubmenu)
+            }
         }
         if hasCost {
             if hasCredits || hasExtraUsage {
@@ -1434,10 +1453,7 @@ extension StatusItemController {
     private func addCreditsHistorySubmenu(to menu: NSMenu) -> Bool {
         guard let submenu = self.makeCreditsHistorySubmenu(width: self.renderedMenuWidth(for: menu))
         else { return false }
-        let item = NSMenuItem(title: L("Credits history"), action: nil, keyEquivalent: "")
-        item.isEnabled = true
-        item.submenu = submenu
-        menu.addItem(item)
+        self.addDetailsSubmenu(to: menu, title: L("Credits history"), submenu: submenu)
         return true
     }
 
@@ -1445,10 +1461,7 @@ extension StatusItemController {
     private func addUsageBreakdownSubmenu(to menu: NSMenu) -> Bool {
         guard let submenu = self.makeUsageBreakdownSubmenu(width: self.renderedMenuWidth(for: menu))
         else { return false }
-        let item = NSMenuItem(title: L("Usage breakdown"), action: nil, keyEquivalent: "")
-        item.isEnabled = true
-        item.submenu = submenu
-        menu.addItem(item)
+        self.addDetailsSubmenu(to: menu, title: L("Usage breakdown"), submenu: submenu)
         return true
     }
 
@@ -1456,12 +1469,7 @@ extension StatusItemController {
     private func addCostHistorySubmenu(to menu: NSMenu, provider: UsageProvider) -> Bool {
         guard let submenu = self.makeCostHistorySubmenu(provider: provider, width: self.renderedMenuWidth(for: menu))
         else { return false }
-        let days = self.store.settings.costUsageHistoryDays
-        let title = days == 1 ? L("Usage history (today)") : String(format: L("Usage history (%d days)"), days)
-        let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
-        item.isEnabled = true
-        item.submenu = submenu
-        menu.addItem(item)
+        self.addDetailsSubmenu(to: menu, title: self.costHistoryMenuTitle(), submenu: submenu)
         return true
     }
 

@@ -214,7 +214,12 @@ extension StatusMenuTests {
         let menu = controller.makeMenu(for: .mistral)
         controller.menuWillOpen(menu)
         let usageItem = menu.items.first { ($0.representedObject as? String) == "menuCardUsage" }
-        #expect(usageItem?.submenu != nil)
+        let historyItem = menu.items.first { item in
+            item.submenu?.items
+                .contains { ($0.representedObject as? String) == StatusItemController.costHistoryChartID } == true
+        }
+        #expect(usageItem?.submenu == nil)
+        #expect(historyItem != nil)
 
         settings.costUsageEnabled = true
         settings.costSummaryDisplayStyle = .both

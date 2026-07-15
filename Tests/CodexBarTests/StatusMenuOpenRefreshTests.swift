@@ -1294,9 +1294,12 @@ extension StatusMenuTests {
         await self.closeMenuAndWaitUntilFresh(controller, menu: menu, key: key)
 
         let creditsItem = try #require(self.menuItem(in: menu, id: "menuCardCredits"))
-        #expect(
-            creditsItem.submenu?.items.first?.representedObject as? String ==
-                StatusItemController.creditsHistoryChartID)
+        let creditsHistoryItem = menu.items.first { item in
+            item.submenu?.items.first?.representedObject as? String ==
+                StatusItemController.creditsHistoryChartID
+        }
+        #expect(creditsItem.submenu == nil)
+        #expect(creditsHistoryItem != nil)
         #expect(controller.menuVersions[key] == controller.menuContentVersion)
     }
 
@@ -1350,8 +1353,12 @@ extension StatusMenuTests {
         await self.closeMenuAndWaitUntilFresh(controller, menu: menu, key: key)
 
         let creditsItem = try #require(self.menuItem(in: menu, id: "menuCardCredits"))
-        #expect(creditsItem.submenu?.items.first?.representedObject as? String == StatusItemController
-            .creditsHistoryChartID)
+        let creditsHistoryItem = menu.items.first { item in
+            item.submenu?.items.first?.representedObject as? String ==
+                StatusItemController.creditsHistoryChartID
+        }
+        #expect(creditsItem.submenu == nil)
+        #expect(creditsHistoryItem != nil)
     }
 
     @Test

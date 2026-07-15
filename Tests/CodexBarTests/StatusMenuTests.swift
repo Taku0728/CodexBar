@@ -423,13 +423,8 @@ struct StatusMenuTests {
         #expect(controller.shouldMergeIcons == true)
 
         func hasOpenAIWebSubmenus(_ menu: NSMenu) -> Bool {
-            let usageItem = menu.items.first { ($0.representedObject as? String) == "menuCardUsage" }
-            let creditsItem = menu.items.first { ($0.representedObject as? String) == "menuCardCredits" }
-            let hasUsageBreakdown = usageItem?.submenu?.items
-                .contains { ($0.representedObject as? String) == "usageBreakdownChart" } == true
-            let hasCreditsHistory = creditsItem?.submenu?.items
-                .contains { ($0.representedObject as? String) == "creditsHistoryChart" } == true
-            return hasUsageBreakdown || hasCreditsHistory
+            menu.parentItemForTest(containingSubmenuItemID: "usageBreakdownChart") != nil ||
+                menu.parentItemForTest(containingSubmenuItemID: "creditsHistoryChart") != nil
         }
 
         let menu = controller.makeMenu()
@@ -1214,12 +1209,10 @@ extension StatusMenuTests {
         controller.menuWillOpen(menu)
         let usageItem = menu.items.first { ($0.representedObject as? String) == "menuCardUsage" }
         let creditsItem = menu.items.first { ($0.representedObject as? String) == "menuCardCredits" }
-        let creditsHistoryItem = menu.items.first { item in
-            item.submenu?.items.contains { ($0.representedObject as? String) == "creditsHistoryChart" } == true
-        }
-        #expect(
-            usageItem?.submenu?.items
-                .contains { ($0.representedObject as? String) == "usageBreakdownChart" } == true)
+        let creditsHistoryItem = menu.parentItemForTest(containingSubmenuItemID: "creditsHistoryChart")
+        let usageBreakdownItem = menu.parentItemForTest(containingSubmenuItemID: "usageBreakdownChart")
+        #expect(usageItem?.submenu == nil)
+        #expect(usageBreakdownItem?.title == L("Usage breakdown"))
         #expect(creditsItem == nil && creditsHistoryItem != nil)
     }
 
@@ -1271,9 +1264,11 @@ extension StatusMenuTests {
         let menu = controller.makeMenu(for: .openai)
         controller.menuWillOpen(menu)
         let usageItem = menu.items.first { ($0.representedObject as? String) == "menuCardUsage" }
+        let historyItem = menu.parentItemForTest(
+            containingSubmenuItemID: StatusItemController.costHistoryChartID)
 
-        #expect(usageItem?.submenu?.items
-            .contains { ($0.representedObject as? String) == StatusItemController.costHistoryChartID } == true)
+        #expect(usageItem?.submenu == nil)
+        #expect(historyItem != nil)
         #expect(menu.items.contains { ($0.representedObject as? String) == "menuCardHeader" } == false)
         #expect(menu.items.contains { ($0.representedObject as? String) == "menuCardExtraUsage" } == false)
     }

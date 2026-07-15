@@ -50,6 +50,13 @@ struct StatusMenuNativeSectionSpacingTests {
         let menu = controller.makeMenu(for: .codex)
         controller.menuWillOpen(menu)
 
+        let usageItem = menu.items.first { ($0.representedObject as? String) == "menuCardUsage" }
+        let usageBreakdownItem = menu.items.first { item in
+            item.submenu?.items.contains { ($0.representedObject as? String) == "usageBreakdownChart" } == true
+        }
+        #expect(usageItem?.submenu == nil)
+        #expect((usageItem?.view as? any MenuCardHighlighting)?.allowsMenuHighlight == false)
+        #expect(usageBreakdownItem?.title == L("Usage breakdown"))
         #expect(menu.items.contains { ($0.representedObject as? String) == "menuCardCredits" } == false)
         #expect(menu.items.contains { $0.title == "Buy Credits..." })
         #expect(menu.items.contains { item in
