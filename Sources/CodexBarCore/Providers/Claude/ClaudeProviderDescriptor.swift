@@ -17,7 +17,7 @@ public enum ClaudeProviderDescriptor {
                 creditsHint: "",
                 toggleTitle: "Show Claude Code usage",
                 cliName: "claude",
-                defaultEnabled: false,
+                defaultEnabled: true,
                 isPrimaryProvider: true,
                 usesAccountFallback: false,
                 browserCookieOrder: ProviderBrowserCookieDefaults.defaultImportOrder,

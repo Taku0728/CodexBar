@@ -13,8 +13,8 @@ struct ProviderToggleStoreTests {
         let codexMeta = try #require(registry.metadata[.codex])
         let claudeMeta = try #require(registry.metadata[.claude])
 
-        #expect(store.isEnabled(metadata: codexMeta))
-        #expect(!store.isEnabled(metadata: claudeMeta))
+        #expect(store.isEnabled(metadata: codexMeta) == codexMeta.defaultEnabled)
+        #expect(store.isEnabled(metadata: claudeMeta) == claudeMeta.defaultEnabled)
     }
 
     @Test

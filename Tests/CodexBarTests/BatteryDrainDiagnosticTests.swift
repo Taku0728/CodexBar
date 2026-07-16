@@ -19,6 +19,17 @@ struct BatteryDrainDiagnosticTests {
         .system
     }
 
+    private func enableOnly(_ selectedProvider: UsageProvider, settings: SettingsStore) {
+        let registry = ProviderRegistry.shared
+        for provider in UsageProvider.allCases {
+            guard let metadata = registry.metadata[provider] else { continue }
+            settings.setProviderEnabled(
+                provider: provider,
+                metadata: metadata,
+                enabled: provider == selectedProvider)
+        }
+    }
+
     @Test
     func `Fallback provider should not animate when all providers are disabled`() {
         self.ensureAppKitInitialized()
@@ -76,10 +87,7 @@ struct BatteryDrainDiagnosticTests {
         settings.mergeIcons = true
         settings.selectedMenuProvider = .codex
 
-        let registry = ProviderRegistry.shared
-        if let meta = registry.metadata[.codex] {
-            settings.setProviderEnabled(provider: .codex, metadata: meta, enabled: true)
-        }
+        self.enableOnly(.codex, settings: settings)
 
         let fetcher = UsageFetcher()
         let store = UsageStore(
@@ -123,10 +131,7 @@ struct BatteryDrainDiagnosticTests {
         settings.refreshFrequency = .manual
         settings.mergeIcons = false
 
-        let registry = ProviderRegistry.shared
-        if let meta = registry.metadata[.codex] {
-            settings.setProviderEnabled(provider: .codex, metadata: meta, enabled: true)
-        }
+        self.enableOnly(.codex, settings: settings)
 
         let fetcher = UsageFetcher()
         let store = UsageStore(
@@ -161,10 +166,7 @@ struct BatteryDrainDiagnosticTests {
         settings.refreshFrequency = .manual
         settings.mergeIcons = false
 
-        let registry = ProviderRegistry.shared
-        if let meta = registry.metadata[.codex] {
-            settings.setProviderEnabled(provider: .codex, metadata: meta, enabled: true)
-        }
+        self.enableOnly(.codex, settings: settings)
 
         let fetcher = UsageFetcher()
         let store = UsageStore(

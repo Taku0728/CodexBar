@@ -18,6 +18,9 @@ struct StatusItemAnimationSignatureTests {
         settings.syntheticAPIToken = "synthetic-test-token"
 
         let registry = ProviderRegistry.shared
+        if let claudeMeta = registry.metadata[.claude] {
+            settings.setProviderEnabled(provider: .claude, metadata: claudeMeta, enabled: false)
+        }
         if let codexMeta = registry.metadata[.codex] {
             settings.setProviderEnabled(provider: .codex, metadata: codexMeta, enabled: true)
         }

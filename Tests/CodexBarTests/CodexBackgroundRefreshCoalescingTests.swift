@@ -1181,8 +1181,13 @@ extension CodexBackgroundRefreshCoalescingTests {
 
     func makeSettingsStore(suite: String) throws -> SettingsStore {
         let settings = testSettingsStore(suiteName: suite)
-        let codexMetadata = try #require(ProviderDescriptorRegistry.metadata[.codex])
-        settings.setProviderEnabled(provider: .codex, metadata: codexMetadata, enabled: true)
+        for provider in UsageProvider.allCases {
+            guard let metadata = ProviderDescriptorRegistry.metadata[provider] else { continue }
+            settings.setProviderEnabled(
+                provider: provider,
+                metadata: metadata,
+                enabled: provider == .codex)
+        }
         settings.providerDetectionCompleted = true
         settings.openAIWebAccessEnabled = true
         settings.codexCookieSource = .auto

@@ -21,8 +21,10 @@ struct ClaudeProviderRuntimeTests {
     }
 
     @Test
-    func `disabled Claude provider does not restart adapter`() {
+    func `disabled Claude provider does not restart adapter`() throws {
         let (settings, store) = self.makeStore()
+        let metadata = try #require(ProviderRegistry.shared.metadata[.claude])
+        settings.setProviderEnabled(provider: .claude, metadata: metadata, enabled: false)
         settings.claudeSwapExecutablePath = "/path/to/cswap"
         settings.claudeSwapEnabled = true
         let runtime = ClaudeProviderRuntime()

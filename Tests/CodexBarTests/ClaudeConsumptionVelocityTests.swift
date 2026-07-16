@@ -191,6 +191,7 @@ struct ClaudeConsumptionVelocityTests {
         let settings = testSettingsStore(suiteName: suite)
 
         #expect(settings.claudeConsumptionVelocityTrackingEnabled)
+        #expect(ClaudeProviderDescriptor.descriptor.metadata.defaultEnabled)
     }
 
     @MainActor
