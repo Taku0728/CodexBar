@@ -586,17 +586,13 @@ extension UsageStore {
             isClaudeOAuthSample: isClaudeOAuthSample,
             codexLimitResetOwnerKey: context.codexLimitResetOwnerKey)
         guard self.isCurrentProviderRefreshGeneration(provider, generation: context.generation) else { return }
-        if let runtime = self.providerRuntimes[provider] {
-            let runtimeContext = ProviderRuntimeContext(
-                provider: provider, settings: self.settings, store: self)
-            runtime.providerDidRefresh(context: runtimeContext, provider: provider)
-        }
-        if provider == .codex {
-            self.recordCodexHistoricalSampleIfNeeded(snapshot: backfilled)
-            await self.refreshCodexConsumptionVelocity(
-                snapshot: backfilled,
-                generation: context.generation)
-        }
+        self.notifyProviderRuntimeDidRefresh(provider)
+        await self.refreshConsumptionVelocityAfterProviderRefresh(
+            provider: provider,
+            snapshot: backfilled,
+            claudeOAuthHistoryOwnerIdentifier: result.claudeOAuthHistoryOwnerIdentifier,
+            isClaudeOAuthSample: isClaudeOAuthSample,
+            generation: context.generation)
     }
 
     private func applyProviderRefreshFailure(

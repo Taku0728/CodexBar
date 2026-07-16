@@ -10,39 +10,41 @@ private final class CodexConsumptionVelocityMenuHostingView<Content: View>: NSHo
 
 extension StatusItemController {
     @discardableResult
-    func addCodexConsumptionVelocityMenuItemIfNeeded(
+    func addConsumptionVelocityMenuItemIfNeeded(
         to menu: NSMenu,
         provider: UsageProvider,
         width: CGFloat) -> Bool
     {
-        guard provider == .codex, self.settings.codexConsumptionVelocityTrackingEnabled else { return false }
+        guard self.consumptionVelocityTrackingEnabled(for: provider) else { return false }
         let item = NSMenuItem(title: "\(L("Consumption Speed")) · 24h", action: nil, keyEquivalent: "")
         item.isEnabled = true
-        item.representedObject = "codexConsumptionVelocitySubmenu"
+        item.representedObject = "consumptionVelocitySubmenu"
         item.submenu = self.makeHostedSubviewPlaceholderMenu(
-            chartID: Self.codexConsumptionVelocityChartID,
-            provider: .codex,
+            chartID: Self.consumptionVelocityChartID,
+            provider: provider,
             width: width)
         menu.addItem(item)
         return true
     }
 
-    func appendCodexConsumptionVelocityChartItem(
+    func appendConsumptionVelocityChartItem(
         to submenu: NSMenu,
+        provider: UsageProvider,
         width: CGFloat) -> Bool
     {
+        guard let state = self.consumptionVelocityState(for: provider) else { return false }
         if !self.menuCardRenderingEnabledForController {
             let chartItem = NSMenuItem()
             chartItem.isEnabled = true
-            chartItem.representedObject = Self.codexConsumptionVelocityChartID
-            chartItem.toolTip = UsageProvider.codex.rawValue
+            chartItem.representedObject = Self.consumptionVelocityChartID
+            chartItem.toolTip = provider.rawValue
             submenu.addItem(chartItem)
             return true
         }
 
         let chartView = CodexConsumptionVelocityChartMenuView(
-            velocity: self.store.codexConsumptionVelocity,
-            error: self.store.codexConsumptionVelocityError,
+            velocity: state.velocity,
+            error: state.error,
             width: width,
             now: Date())
         let hosting = CodexConsumptionVelocityMenuHostingView(rootView: chartView)
@@ -53,14 +55,15 @@ extension StatusItemController {
         let chartItem = NSMenuItem()
         chartItem.view = hosting
         chartItem.isEnabled = true
-        chartItem.representedObject = Self.codexConsumptionVelocityChartID
-        chartItem.toolTip = UsageProvider.codex.rawValue
+        chartItem.representedObject = Self.consumptionVelocityChartID
+        chartItem.toolTip = provider.rawValue
         submenu.addItem(chartItem)
         return true
     }
 
-    func codexConsumptionVelocityRenderSignature() -> String {
-        let velocity = self.store.codexConsumptionVelocity
+    func consumptionVelocityRenderSignature(for provider: UsageProvider) -> String {
+        guard let state = self.consumptionVelocityState(for: provider) else { return "disabled" }
+        let velocity = state.velocity
         let values = [
             velocity.current?.multiplier,
             velocity.oneHour?.multiplier,
@@ -68,7 +71,37 @@ extension StatusItemController {
         ].map { value in
             value.map { String(format: "%.4f", $0) } ?? "nil"
         }.joined(separator: ":")
-        return "\(self.store.codexConsumptionVelocityRevision)|\(values)|\(velocity.points.count)|" +
-            (self.store.codexConsumptionVelocityError ?? "")
+        return "\(state.revision)|\(values)|\(velocity.points.count)|" + (state.error ?? "")
+    }
+
+    private func consumptionVelocityTrackingEnabled(for provider: UsageProvider) -> Bool {
+        switch provider {
+        case .codex:
+            self.settings.codexConsumptionVelocityTrackingEnabled
+        case .claude:
+            self.settings.claudeConsumptionVelocityTrackingEnabled
+        default:
+            false
+        }
+    }
+
+    private func consumptionVelocityState(for provider: UsageProvider)
+        -> (velocity: CodexConsumptionVelocity, error: String?, revision: Int)?
+    {
+        guard self.consumptionVelocityTrackingEnabled(for: provider) else { return nil }
+        return switch provider {
+        case .codex:
+            (
+                self.store.codexConsumptionVelocity,
+                self.store.codexConsumptionVelocityError,
+                self.store.codexConsumptionVelocityRevision)
+        case .claude:
+            (
+                self.store.claudeConsumptionVelocity,
+                self.store.claudeConsumptionVelocityError,
+                self.store.claudeConsumptionVelocityRevision)
+        default:
+            nil
+        }
     }
 }

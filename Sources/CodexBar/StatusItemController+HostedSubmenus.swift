@@ -57,7 +57,7 @@ extension StatusItemController {
             Self.creditsHistoryChartID,
             Self.costHistoryChartID,
             Self.usageHistoryChartID,
-            Self.codexConsumptionVelocityChartID,
+            Self.consumptionVelocityChartID,
             Self.storageBreakdownID,
             Self.statusComponentsID,
             Self.zaiHourlyUsageChartID,
@@ -128,8 +128,12 @@ extension StatusItemController {
             } else {
                 false
             }
-        case Self.codexConsumptionVelocityChartID:
-            self.appendCodexConsumptionVelocityChartItem(to: menu, width: width)
+        case Self.consumptionVelocityChartID:
+            if let provider = identity.provider {
+                self.appendConsumptionVelocityChartItem(to: menu, provider: provider, width: width)
+            } else {
+                false
+            }
         case Self.storageBreakdownID:
             if let providerRawValue = placeholder.toolTip,
                let provider = UsageProvider(rawValue: providerRawValue)
@@ -204,8 +208,12 @@ extension StatusItemController {
             } else {
                 false
             }
-        case Self.codexConsumptionVelocityChartID:
-            self.appendCodexConsumptionVelocityChartItem(to: menu, width: width)
+        case Self.consumptionVelocityChartID:
+            if let provider = identity.provider {
+                self.appendConsumptionVelocityChartItem(to: menu, provider: provider, width: width)
+            } else {
+                false
+            }
         case Self.storageBreakdownID:
             if let provider = identity.provider {
                 self.appendStorageBreakdownItem(to: menu, provider: provider, width: width)
@@ -291,8 +299,8 @@ extension StatusItemController {
             }
         case Self.usageHistoryChartID:
             .text(identity.provider.map(self.usageHistoryRenderSignature(for:)) ?? "missing-provider")
-        case Self.codexConsumptionVelocityChartID:
-            .text(self.codexConsumptionVelocityRenderSignature())
+        case Self.consumptionVelocityChartID:
+            .text(identity.provider.map(self.consumptionVelocityRenderSignature(for:)) ?? "missing-provider")
         case Self.storageBreakdownID:
             .text(identity.provider.map(self.storageBreakdownRenderSignature(for:)) ?? "missing-provider")
         case Self.statusComponentsID:

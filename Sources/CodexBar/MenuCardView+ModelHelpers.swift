@@ -110,7 +110,7 @@ extension UsageMenuCardView.Model {
             self.usageNotes.isEmpty &&
             self.openAIAPIUsage == nil &&
             self.inlineUsageDashboard == nil &&
-            self.codexConsumptionVelocity == nil &&
+            self.consumptionVelocity == nil &&
             self.creditsRemaining == nil &&
             self.providerCost == nil &&
             self.tokenUsage == nil &&
@@ -122,7 +122,7 @@ extension UsageMenuCardView.Model {
             !self.usageNotes.isEmpty ||
             self.openAIAPIUsage != nil ||
             self.inlineUsageDashboard != nil ||
-            self.codexConsumptionVelocity != nil ||
+            self.consumptionVelocity != nil ||
             self.codexResetCredits != nil ||
             self.placeholder != nil
     }
@@ -130,7 +130,7 @@ extension UsageMenuCardView.Model {
     var usesStackedDetailLayout: Bool {
         !self.metrics.isEmpty ||
             self.creditsText != nil ||
-            self.codexConsumptionVelocity != nil ||
+            self.consumptionVelocity != nil ||
             self.codexResetCredits != nil ||
             self.providerCost != nil ||
             self.tokenUsage != nil
@@ -166,8 +166,8 @@ extension UsageMenuCardView.Model {
                   candidateText: candidate.creditsText,
                   candidateRemaining: candidate.creditsRemaining),
               self.creditsHintText == candidate.creditsHintText,
-              (self.codexConsumptionVelocity == nil) == (candidate.codexConsumptionVelocity == nil),
-              self.codexConsumptionVelocityError == candidate.codexConsumptionVelocityError,
+              (self.consumptionVelocity == nil) == (candidate.consumptionVelocity == nil),
+              self.consumptionVelocityError == candidate.consumptionVelocityError,
               self.codexResetCredits == candidate.codexResetCredits,
               self.placeholder == candidate.placeholder,
               Self.hasCompatibleDashboardLayout(self.inlineUsageDashboard, candidate.inlineUsageDashboard),

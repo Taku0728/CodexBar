@@ -38,6 +38,7 @@ extension UsageStore {
         _ = self.historicalPaceRevision
         _ = self.planUtilizationHistoryRevision
         _ = self.codexConsumptionVelocityRevision
+        _ = self.claudeConsumptionVelocityRevision
         _ = self.providerStorageFootprints
         return 0
     }
@@ -55,6 +56,7 @@ extension UsageStore {
         _ = self.statuses
         _ = self.historicalPaceRevision
         _ = self.codexConsumptionVelocityRevision
+        _ = self.claudeConsumptionVelocityRevision
         return 0
     }
 
@@ -194,6 +196,9 @@ final class UsageStore {
     var codexConsumptionVelocity: CodexConsumptionVelocity = .measuring
     var codexConsumptionVelocityError: String?
     var codexConsumptionVelocityRevision: Int = 0
+    var claudeConsumptionVelocity: CodexConsumptionVelocity = .measuring
+    var claudeConsumptionVelocityError: String?
+    var claudeConsumptionVelocityRevision: Int = 0
     var providerStorageFootprints: [UsageProvider: ProviderStorageFootprint] = [:]
     @ObservationIgnored var lastCreditsSnapshot: CreditsSnapshot?
     @ObservationIgnored var lastCreditsSnapshotAccountKey: String?
@@ -331,6 +336,9 @@ final class UsageStore {
     @ObservationIgnored let codexAccountUsageSnapshotStore: (any CodexAccountUsageSnapshotStoring)?
     @ObservationIgnored let codexConsumptionVelocityStore: CodexConsumptionVelocityStore?
     @ObservationIgnored var lastCodexConsumptionVelocityFetchAt: Date?
+    @ObservationIgnored let claudeConsumptionVelocityStore: CodexConsumptionVelocityStore?
+    @ObservationIgnored var lastClaudeConsumptionVelocityFetchAtByAccount: [String: Date] = [:]
+    @ObservationIgnored var displayedClaudeConsumptionVelocityAccountKey: String?
     @ObservationIgnored var codexHistoricalDataset: CodexHistoricalDataset?
     @ObservationIgnored var codexHistoricalDatasetAccountKey: String?
     @ObservationIgnored var lastKnownResetSnapshots: [UsageProvider: UsageSnapshot] = [:]
@@ -373,6 +381,7 @@ final class UsageStore {
         planUtilizationHistoryStore: PlanUtilizationHistoryStore? = nil,
         codexAccountUsageSnapshotStore: (any CodexAccountUsageSnapshotStoring)? = nil,
         codexConsumptionVelocityStore: CodexConsumptionVelocityStore? = nil,
+        claudeConsumptionVelocityStore: CodexConsumptionVelocityStore? = nil,
         sessionQuotaNotifier: any SessionQuotaNotifying = SessionQuotaNotifier(),
         startupBehavior: StartupBehavior = .automatic,
         environmentBase: [String: String] = ProcessInfo.processInfo.environment,
@@ -393,6 +402,7 @@ final class UsageStore {
         self.codexAccountUsageSnapshotStore = codexAccountUsageSnapshotStore ??
             (self.startupBehavior.automaticallyStartsBackgroundWork ? FileCodexAccountUsageSnapshotStore() : nil)
         self.codexConsumptionVelocityStore = codexConsumptionVelocityStore
+        self.claudeConsumptionVelocityStore = claudeConsumptionVelocityStore
         self.planUtilizationPersistenceCoordinator = PlanUtilizationHistoryPersistenceCoordinator(
             store: planHistoryStore)
         self.providerMetadata = registry.metadata

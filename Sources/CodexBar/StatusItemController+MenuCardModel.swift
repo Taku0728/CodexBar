@@ -102,17 +102,22 @@ extension StatusItemController {
             ?? (metadata.usesAccountFallback
                 ? self.store.accountInfo(for: target)
                 : AccountInfo(email: nil, plan: nil))
+        let velocityState: (velocity: CodexConsumptionVelocity, error: String?)? = if surface != .liveCard {
+            nil
+        } else if target == .codex, self.settings.codexConsumptionVelocityTrackingEnabled {
+            (self.store.codexConsumptionVelocity, self.store.codexConsumptionVelocityError)
+        } else if target == .claude, self.settings.claudeConsumptionVelocityTrackingEnabled {
+            (self.store.claudeConsumptionVelocity, self.store.claudeConsumptionVelocityError)
+        } else {
+            nil
+        }
         let input = UsageMenuCardView.Model.Input(
             provider: target,
             metadata: metadata,
             snapshot: snapshot,
             codexProjection: codexProjection,
-            codexConsumptionVelocity: target == .codex && self.settings.codexConsumptionVelocityTrackingEnabled
-                ? self.store.codexConsumptionVelocity
-                : nil,
-            codexConsumptionVelocityError: target == .codex && self.settings.codexConsumptionVelocityTrackingEnabled
-                ? self.store.codexConsumptionVelocityError
-                : nil,
+            consumptionVelocity: velocityState?.velocity,
+            consumptionVelocityError: velocityState?.error,
             credits: credits,
             creditsError: creditsError,
             dashboard: dashboard,

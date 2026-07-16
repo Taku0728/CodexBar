@@ -442,6 +442,9 @@ extension SettingsStore {
             forKey: "codexConsumptionVelocityTrackingEnabled") as? Bool
             ?? savedHistoricalTracking
             ?? true
+        let claudeConsumptionVelocityTrackingEnabled = userDefaults.object(
+            forKey: "claudeConsumptionVelocityTrackingEnabled") as? Bool
+            ?? true
         let multiAccountMenuLayoutRaw = Self.loadMultiAccountMenuLayoutRaw(userDefaults: userDefaults)
         let resolvedPreferences = Self.loadMenuBarMetricPreferences(userDefaults: userDefaults)
         let copilotBudgetExtrasEnabled = userDefaults.object(forKey: "copilotBudgetExtrasEnabled") as? Bool ?? false
@@ -533,6 +536,7 @@ extension SettingsStore {
             kiroMenuBarDisplayModeRaw: kiroMenuBarDisplayModeRaw,
             historicalTrackingEnabled: historicalTrackingEnabled,
             codexConsumptionVelocityTrackingEnabled: codexConsumptionVelocityTrackingEnabled,
+            claudeConsumptionVelocityTrackingEnabled: claudeConsumptionVelocityTrackingEnabled,
             multiAccountMenuLayoutRaw: multiAccountMenuLayoutRaw,
             menuBarMetricPreferencesRaw: resolvedPreferences,
             copilotBudgetExtrasEnabled: copilotBudgetExtrasEnabled,

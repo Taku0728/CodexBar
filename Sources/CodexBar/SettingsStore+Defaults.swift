@@ -356,6 +356,15 @@ extension SettingsStore {
         }
     }
 
+    var claudeConsumptionVelocityTrackingEnabled: Bool {
+        get { self.defaultsState.claudeConsumptionVelocityTrackingEnabled }
+        set {
+            self.defaultsState.claudeConsumptionVelocityTrackingEnabled = newValue
+            self.userDefaults.set(newValue, forKey: "claudeConsumptionVelocityTrackingEnabled")
+            self.noteBackgroundWorkSettingsChanged()
+        }
+    }
+
     var menuBarMetricPreferencesRaw: [String: String] {
         get { self.defaultsState.menuBarMetricPreferencesRaw }
         set {

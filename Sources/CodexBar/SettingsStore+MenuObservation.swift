@@ -33,6 +33,7 @@ extension SettingsStore {
         _ = self.kiroMenuBarDisplayMode
         _ = self.historicalTrackingEnabled
         _ = self.codexConsumptionVelocityTrackingEnabled
+        _ = self.claudeConsumptionVelocityTrackingEnabled
         _ = self.multiAccountMenuLayout
         _ = self.menuBarMetricPreferencesRaw
         _ = self.copilotIconSecondaryWindowIDRaw

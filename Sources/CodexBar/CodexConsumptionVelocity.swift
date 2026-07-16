@@ -7,19 +7,22 @@ struct CodexConsumptionVelocitySample: Codable, Equatable, Sendable {
     let localTokens: Int64?
     let weeklyUsedPercent: Double
     let weeklyResetsAt: Date
+    let quotaWindowMinutes: Int?
 
     init(
         capturedAt: Date,
         lifetimeTokens: Int64? = nil,
         localTokens: Int64? = nil,
         weeklyUsedPercent: Double,
-        weeklyResetsAt: Date)
+        weeklyResetsAt: Date,
+        quotaWindowMinutes: Int? = nil)
     {
         self.capturedAt = capturedAt
         self.lifetimeTokens = lifetimeTokens
         self.localTokens = localTokens
         self.weeklyUsedPercent = weeklyUsedPercent
         self.weeklyResetsAt = weeklyResetsAt
+        self.quotaWindowMinutes = quotaWindowMinutes
     }
 
     var observedTokens: Int64? {
@@ -336,6 +339,7 @@ enum CodexConsumptionVelocityEvaluator {
         for sample in sorted.reversed() {
             // The RPC reset timestamp can drift by a few seconds between refreshes.
             guard abs(sample.weeklyResetsAt.timeIntervalSince(latest.weeklyResetsAt)) <= 120 else { break }
+            guard sample.quotaWindowMinutes == latest.quotaWindowMinutes else { break }
             if let next = segment.last,
                sample.weeklyUsedPercent > next.weeklyUsedPercent
             {
@@ -367,6 +371,7 @@ enum CodexConsumptionVelocityEvaluator {
         for sample in sorted {
             if let first = current.first, let previous = current.last,
                abs(sample.weeklyResetsAt.timeIntervalSince(first.weeklyResetsAt)) > 120 ||
+               sample.quotaWindowMinutes != first.quotaWindowMinutes ||
                sample.weeklyUsedPercent < previous.weeklyUsedPercent
             {
                 rawSegments.append(current)

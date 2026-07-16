@@ -27,6 +27,7 @@ struct ClaudeProviderImplementation: ProviderImplementation {
         _ = settings.claudeWebExtrasEnabled
         _ = settings.claudeSwapEnabled
         _ = settings.claudeSwapExecutablePath
+        _ = settings.claudeConsumptionVelocityTrackingEnabled
     }
 
     @MainActor
@@ -88,6 +89,20 @@ struct ClaudeProviderImplementation: ProviderImplementation {
             set: { context.settings.claudeSwapEnabled = $0 })
 
         return [
+            ProviderSettingsToggleDescriptor(
+                id: "claude-consumption-velocity-tracking",
+                title: "Consumption speed tracking",
+                subtitle: [
+                    "Stores up to 8 days of Claude consumption speed samples locally.",
+                    "Uses the weekly quota when available and the 5-hour quota otherwise.",
+                ].joined(separator: " "),
+                binding: context.boolBinding(\.claudeConsumptionVelocityTrackingEnabled),
+                statusText: nil,
+                actions: [],
+                isVisible: nil,
+                onChange: nil,
+                onAppDidBecomeActive: nil,
+                onAppearWhenEnabled: nil),
             ProviderSettingsToggleDescriptor(
                 id: "claude-oauth-prompt-free-credentials",
                 title: "Avoid Keychain prompts",

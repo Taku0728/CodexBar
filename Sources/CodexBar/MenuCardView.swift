@@ -124,8 +124,8 @@ struct UsageMenuCardView: View {
         var usesLiveSubtitle: Bool = false
         let planText: String?
         let metrics: [Metric]
-        var codexConsumptionVelocity: CodexConsumptionVelocity?
-        var codexConsumptionVelocityError: String?
+        var consumptionVelocity: CodexConsumptionVelocity?
+        var consumptionVelocityError: String?
         let usageNotes: [String]
         let openAIAPIUsage: OpenAIAPIUsageSnapshot?
         let inlineUsageDashboard: InlineUsageDashboardModel?
@@ -578,11 +578,11 @@ private struct UsageMenuCardUsageContentView: View {
                     title: UsageMenuCardView.popupMetricTitle(provider: self.model.provider, metric: metric),
                     progressColor: self.model.progressColor)
                 if metric.id == self.velocityAnchorID,
-                   let velocity = self.model.codexConsumptionVelocity
+                   let velocity = self.model.consumptionVelocity
                 {
                     CodexConsumptionVelocityInlineView(
                         velocity: velocity,
-                        error: self.model.codexConsumptionVelocityError,
+                        error: self.model.consumptionVelocityError,
                         now: Date())
                 }
             }
@@ -629,8 +629,8 @@ private struct UsageMenuCardUsageContentView: View {
     }
 
     private var velocityAnchorID: String? {
-        guard self.model.provider == .codex,
-              self.model.codexConsumptionVelocity != nil
+        guard self.model.provider == .codex || self.model.provider == .claude,
+              self.model.consumptionVelocity != nil
         else { return nil }
         if self.primaryMetrics.contains(where: { $0.id == "secondary" }) {
             return "secondary"
@@ -944,8 +944,8 @@ extension UsageMenuCardView.Model {
             tokenUsage: tokenUsage,
             placeholder: placeholder,
             progressColor: Self.progressColor(for: input.provider))
-        model.codexConsumptionVelocity = input.codexConsumptionVelocity
-        model.codexConsumptionVelocityError = input.codexConsumptionVelocityError
+        model.consumptionVelocity = input.consumptionVelocity
+        model.consumptionVelocityError = input.consumptionVelocityError
         return model
     }
 

@@ -7,8 +7,8 @@ extension UsageMenuCardView.Model {
         let metadata: ProviderMetadata
         let snapshot: UsageSnapshot?
         let codexProjection: CodexConsumerProjection?
-        let codexConsumptionVelocity: CodexConsumptionVelocity?
-        let codexConsumptionVelocityError: String?
+        let consumptionVelocity: CodexConsumptionVelocity?
+        let consumptionVelocityError: String?
         let credits: CreditsSnapshot?
         let creditsError: String?
         let dashboard: OpenAIDashboardSnapshot?
@@ -44,8 +44,8 @@ extension UsageMenuCardView.Model {
             metadata: ProviderMetadata,
             snapshot: UsageSnapshot?,
             codexProjection: CodexConsumerProjection? = nil,
-            codexConsumptionVelocity: CodexConsumptionVelocity? = nil,
-            codexConsumptionVelocityError: String? = nil,
+            consumptionVelocity: CodexConsumptionVelocity? = nil,
+            consumptionVelocityError: String? = nil,
             credits: CreditsSnapshot?,
             creditsError: String?,
             dashboard: OpenAIDashboardSnapshot?,
@@ -80,8 +80,8 @@ extension UsageMenuCardView.Model {
             self.metadata = metadata
             self.snapshot = snapshot
             self.codexProjection = codexProjection
-            self.codexConsumptionVelocity = codexConsumptionVelocity
-            self.codexConsumptionVelocityError = codexConsumptionVelocityError
+            self.consumptionVelocity = consumptionVelocity
+            self.consumptionVelocityError = consumptionVelocityError
             self.credits = credits
             self.creditsError = creditsError
             self.dashboard = dashboard

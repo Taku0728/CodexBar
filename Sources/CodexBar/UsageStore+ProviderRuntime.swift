@@ -1,6 +1,12 @@
 import CodexBarCore
 
 extension UsageStore {
+    func notifyProviderRuntimeDidRefresh(_ provider: UsageProvider) {
+        guard let runtime = self.providerRuntimes[provider] else { return }
+        let context = ProviderRuntimeContext(provider: provider, settings: self.settings, store: self)
+        runtime.providerDidRefresh(context: context, provider: provider)
+    }
+
     func performRuntimeAction(_ action: ProviderRuntimeAction, for provider: UsageProvider) async {
         guard let runtime = self.providerRuntimes[provider] else { return }
         let context = ProviderRuntimeContext(provider: provider, settings: self.settings, store: self)
