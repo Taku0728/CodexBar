@@ -15,6 +15,7 @@ resolve_package_signing_mode() {
 
 CONF=${1:-release}
 ALLOW_LLDB=${CODEXBAR_ALLOW_LLDB:-0}
+SKIP_WIDGET_EXTENSION=${CODEXBAR_SKIP_WIDGET_EXTENSION:-0}
 SIGNING_MODE=
 resolve_package_signing_mode
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -24,6 +25,13 @@ case "$LOWER_CONF" in
   debug|release) ;;
   *)
     echo "ERROR: Unsupported build configuration: $CONF (expected debug or release)" >&2
+    exit 1
+    ;;
+esac
+case "$SKIP_WIDGET_EXTENSION" in
+  0|1) ;;
+  *)
+    echo "ERROR: Unsupported CODEXBAR_SKIP_WIDGET_EXTENSION: $SKIP_WIDGET_EXTENSION (expected 0 or 1)" >&2
     exit 1
     ;;
 esac
@@ -446,8 +454,12 @@ strip_release_binary "$APP/Contents/Helpers/CodexBarCLI"
 # Watchdog helper: ensures `claude` probes die when CodexBar crashes/gets killed.
 install_binary "CodexBarClaudeWatchdog" "$APP/Contents/Helpers/CodexBarClaudeWatchdog"
 strip_release_binary "$APP/Contents/Helpers/CodexBarClaudeWatchdog"
-install_widget_extension
-strip_release_binary "$APP/Contents/PlugIns/CodexBarWidget.appex/Contents/MacOS/CodexBarWidget"
+if [[ "$SKIP_WIDGET_EXTENSION" == "0" ]]; then
+  install_widget_extension
+  strip_release_binary "$APP/Contents/PlugIns/CodexBarWidget.appex/Contents/MacOS/CodexBarWidget"
+else
+  echo "Skipping CodexBarWidget extension (CODEXBAR_SKIP_WIDGET_EXTENSION=1)." >&2
+fi
 
 swiftpm_bin_path "${ARCH_LIST[0]}" PREFERRED_BUILD_DIR
 
