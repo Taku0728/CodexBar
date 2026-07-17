@@ -36,7 +36,7 @@ extension SettingsStore {
     }
 
     var claudeCookieSource: ProviderCookieSource {
-        get { self.resolvedCookieSource(provider: .claude, fallback: .auto) }
+        get { self.resolvedCookieSource(provider: .claude, fallback: .off) }
         set {
             self.updateProviderConfig(provider: .claude) { entry in
                 entry.cookieSource = newValue
