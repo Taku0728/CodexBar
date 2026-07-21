@@ -167,7 +167,7 @@ struct ClaudeProviderImplementation: ProviderImplementation {
             get: { context.settings.claudeOAuthKeychainPromptMode.rawValue },
             set: { raw in
                 context.settings.claudeOAuthKeychainPromptMode = ClaudeOAuthKeychainPromptMode(rawValue: raw)
-                    ?? .onlyOnUserAction
+                    ?? ClaudeOAuthKeychainPromptPreference.defaultMode
             })
 
         let usageOptions = ClaudeUsageDataSource.allCases.map {

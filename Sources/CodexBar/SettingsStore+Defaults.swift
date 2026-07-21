@@ -464,7 +464,8 @@ extension SettingsStore {
     var claudeOAuthKeychainPromptMode: ClaudeOAuthKeychainPromptMode {
         get {
             let raw = self.defaultsState.claudeOAuthKeychainPromptModeRaw
-            return ClaudeOAuthKeychainPromptMode(rawValue: raw ?? "") ?? .onlyOnUserAction
+            return ClaudeOAuthKeychainPromptMode(rawValue: raw ?? "")
+                ?? ClaudeOAuthKeychainPromptPreference.defaultMode
         }
         set {
             self.defaultsState.claudeOAuthKeychainPromptModeRaw = newValue.rawValue

@@ -551,9 +551,22 @@ struct SettingsStoreCoverageTests {
     }
 
     @Test
-    func `claude keychain prompt mode defaults to only on user action`() {
+    func `claude keychain prompt mode defaults to never`() {
         let settings = Self.makeSettingsStore()
-        #expect(settings.claudeOAuthKeychainPromptMode == .onlyOnUserAction)
+        #expect(settings.claudeOAuthKeychainPromptMode == .never)
+        #expect(settings.claudeOAuthPromptFreeCredentialsEnabled)
+    }
+
+    @Test
+    func `claude keychain prompt preference defaults to never`() throws {
+        let suite = "SettingsStoreCoverageTests-claude-keychain-prompt-preference-default"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defaults.removePersistentDomain(forName: suite)
+
+        #expect(ClaudeOAuthKeychainPromptPreference.current(userDefaults: defaults) == .never)
+
+        defaults.set("invalid-mode", forKey: "claudeOAuthKeychainPromptMode")
+        #expect(ClaudeOAuthKeychainPromptPreference.current(userDefaults: defaults) == .never)
     }
 
     @Test
@@ -574,7 +587,7 @@ struct SettingsStoreCoverageTests {
     }
 
     @Test
-    func `claude keychain prompt mode invalid raw falls back to only on user action`() throws {
+    func `claude keychain prompt mode invalid raw falls back to never`() throws {
         let suite = "SettingsStoreCoverageTests-claude-keychain-prompt-mode-invalid"
         let defaults = try #require(UserDefaults(suiteName: suite))
         defaults.removePersistentDomain(forName: suite)
@@ -582,7 +595,7 @@ struct SettingsStoreCoverageTests {
         let configStore = testConfigStore(suiteName: suite)
 
         let settings = Self.makeSettingsStore(userDefaults: defaults, configStore: configStore)
-        #expect(settings.claudeOAuthKeychainPromptMode == .onlyOnUserAction)
+        #expect(settings.claudeOAuthKeychainPromptMode == .never)
     }
 
     @Test
@@ -666,7 +679,7 @@ struct SettingsStoreCoverageTests {
     @Test
     func `claude prompt free credentials toggle maps to never prompt policy`() {
         let settings = Self.makeSettingsStore()
-        #expect(settings.claudeOAuthPromptFreeCredentialsEnabled == false)
+        #expect(settings.claudeOAuthPromptFreeCredentialsEnabled)
 
         settings.claudeOAuthPromptFreeCredentialsEnabled = true
         #expect(settings.claudeOAuthKeychainReadStrategy == .securityFramework)

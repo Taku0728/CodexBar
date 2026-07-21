@@ -7,6 +7,8 @@ public enum ClaudeOAuthKeychainPromptMode: String, Sendable, Codable, CaseIterab
 }
 
 public enum ClaudeOAuthKeychainPromptPreference {
+    public static let defaultMode: ClaudeOAuthKeychainPromptMode = .never
+
     static let releaseApplicationDefaultsDomain = "com.steipete.codexbar"
     static let debugApplicationDefaultsDomain = "com.steipete.codexbar.debug"
     private static let userDefaultsKey = "claudeOAuthKeychainPromptMode"
@@ -48,7 +50,7 @@ public enum ClaudeOAuthKeychainPromptPreference {
         {
             return mode
         }
-        return .onlyOnUserAction
+        return self.defaultMode
     }
 
     public static func isApplicable(
